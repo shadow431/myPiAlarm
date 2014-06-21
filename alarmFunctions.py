@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import time, urllib2, yaml
 try:
     import RPi.GPIO as GPIO
 except RuntimeError:
@@ -18,6 +19,8 @@ def pinSetup(pin,type):
 
 def checkPin(pin):
     return GPIO.input(pin)
+
+
 
 if __name__ == '__main__':
     pin = 15
