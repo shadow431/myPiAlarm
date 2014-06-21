@@ -2,6 +2,7 @@
 import smtplib, yaml
 from email.mime.text import MIMEText
 
+#Get content from yaml formated file and return it as a dictionary/list
 def getYaml(file):
     f = open('./'+str(file)+'.yaml','r')
     content = yaml.load(f.read())
@@ -10,8 +11,7 @@ def getYaml(file):
 
 settings = getYaml('settings')
 
-#Functions needed by Both master and Slave
-
+#Generate and send an email
 def email(message):
     msg = MIMEText(message)
     msg['Subject'] = settings['email']['subject']
