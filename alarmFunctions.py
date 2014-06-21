@@ -10,7 +10,8 @@ GPIO.setmode(GPIO.BOARD)
 
 #Warnings?
 #GPIO.setwarnings(True)
-
+startTime = time.time()
+pins = {}
 pinStatus = {} 
 settings = {}
 
@@ -58,13 +59,27 @@ def notifyHost(pin,status,server):
         response = e
     return response
 
-def main():
+def start():
+    global settings
+    global pins
+
     settings = commonFunc.getYaml('settings')
     pins = getPinsFromHost(settings["master"])
     for pin in pins:
         pinSetup(pin,'in')
 
+def main():
+    start()
+    restarted = False
     while True:
+        mod = int((startTime-time.time())%settings['checkinTime'])
+        if mod == 0 and restarted == False:
+            start()
+            restarted = True
+        elif restarted == True and mod == 0:
+            pass
+        else:
+            restarted = False
         result = "Ok"
         for pin in pins:
             if pinStatus.has_key(pin) == False:
@@ -76,5 +91,6 @@ def main():
             if result != "Ok":
                 print "Failure to notifiy Host: "+str(result)
         time.sleep(.2)
+
 if __name__ == '__main__':
     main()
