@@ -10,7 +10,13 @@ app = Flask(__name__)
 settings = commonFunc.getYaml('settings')
 #Get the list of pins from yaml file
 allPins = commonFunc.getYaml('pins')['pins']
-sysStatus = commonFunc.getYaml('status') 
+sysStatus = commonFunc.getYaml('status')
+if type(sysStatus) is not dict:
+    sysStatus = {}
+    sysStatus['pins'] ={}
+    sysStatus['armed'] = []
+    sysStatus['checkIn'] = {}
+
 
 #return the pins for the request pi serial number
 @app.route("/getpins", methods=['GET'])
