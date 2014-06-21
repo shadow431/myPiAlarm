@@ -51,7 +51,14 @@ def getPinsFromHost(server):
 
 def notifyHost(pin,status,server):
     server = "http://"+server+"/pinstatus?pin="+str(pin)+"&status="+str(status)+"&serNum="+str(getSerial())
-    response = yaml.load(urllib2.urlopen(server))
+    while True:
+        try:
+            response = yaml.load(urllib2.urlopen(server))
+        except urllib2.URLError,e:
+            commonFunc.email("There was an error connecting to: "+server+"\nError:"+str(e))
+            time.sleep((30*60))
+            continue 
+        break
     return response
 
 def main():
