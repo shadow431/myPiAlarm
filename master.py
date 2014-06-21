@@ -2,54 +2,37 @@
 
 from flask import Flask
 from flask import request
-import yaml, commonFunc
+import yaml, commonFunc, time
 
-armedZones = []
-tmpStatus = {}
-pinStatus = {}
+sysStatus = {}
 app = Flask(__name__)
 
+settings = commonFunc.getYaml('settings')
 #Get the list of pins from yaml file
-pinYaml = open('./pins.yaml','r')
-yamlPins = yaml.load(pinYaml.read())
-allPins = yamlPins['pins']
-
-statusYaml = open('status.yaml','r')
-tmpStatus = yaml.load(statusYaml.read())
-if tmpStatus > 0:
-    try:
-        tmpStatus['pins']
-    except KeyError:
-        pinStatus = {}
-    else:
-        pinStatus = tmpStatus['pins']
-    
-    try:
-        tmpStatus['armed']
-    except KeyError:
-        armedZones = []
-    else:
-        armedZones = tmpStatus['armed']
-statusYaml.close()
+allPins = commonFunc.getYaml('pins')['pins']
+sysStatus = commonFunc.getYaml('status') 
 
 #return the pins for the request pi serial number
 @app.route("/getpins", methods=['GET'])
 def getpins():
     global allPins
+    global sysStatus
 
     serialNum = request.args.get('serNum')
-
+    sysStatus['checkIn'][serialNum] = time.time()
+    writeStatus()
     return yaml.dump(allPins[serialNum])
 
 #recieve the status of the pins
 @app.route("/pinstatus",methods=['GET'])
 def recievePinStatus():
     global allPins
-    global pinStatus
+    global sysStatus
 
     serialNum = str(request.args.get('serNum'))
     pin = int(request.args.get('pin'))
     status = int(request.args.get('status'))
+    sysStatus['checkIn'][serialNum] = time.time()
     setStatus(serialNum,pin,status)
     if isArmed(allPins[serialNum][pin]['zones'])  == True and status==1:
         email = commonFunc.email('Pin: '+str(pin)+'\nStatus: '+str(status))
@@ -58,38 +41,37 @@ def recievePinStatus():
 #arm the alarm
 @app.route("/arm",methods=['GET'])
 def arm():
-    global armedZones
+    global sysStatus
     zone = str(request.args.get('zone'))
-    armedZones.append(zone)
+    sysStatus['armed'].append(zone)
     writeStatus()
     return "Armed Zone" 
 
 def isArmed(zones):
-    global armedZones
+    global sysStatus
 
-    if len(armedZones) == 0:
+    if len(sysStatus['armed']) == 0:
         return False 
     for zone in zones:
-        if zone in armedZones:
+        if zone in sysStatus['armed']:
             return True
     return False 
 
 def setStatus(serNum,pin,status):
-    global pinStatus
+    global sysStatus 
     try:
-        pinStatus[serNum]
+        sysStatus['pins'][serNum]
     except KeyError:
-        pinStatus[serNum] = {}
-    pinStatus[serNum][pin] = status
+        sysStatus['pins'][serNum] = {}
+    sysStatus['pins'][serNum][pin] = status
     writeStatus()
     return
 
 def writeStatus():
-    global armedZones
-    global pinStatus
+    global sysStatus
 
     statusYaml = open('status.yaml','r+')
-    statusYaml.write(yaml.dump({'armed':armedZones,'pins':pinStatus}))
+    statusYaml.write(yaml.dump(sysStatus))
     statusYaml.close
     return
 
