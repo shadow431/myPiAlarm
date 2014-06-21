@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import time, urllib2, yaml
+import time, urllib2, yaml, commonFunc
 try:
     import RPi.GPIO as GPIO
 except RuntimeError:
@@ -12,6 +12,7 @@ GPIO.setmode(GPIO.BOARD)
 #GPIO.setwarnings(True)
 
 pinStatus = {} 
+settings = {}
 
 def getSerial():
   # Extract serial from cpuinfo file
@@ -47,8 +48,7 @@ def notifyHost(pin,status,server):
     return response
 
 def main():
-    f = open('./settings.yaml','r')
-    settings = yaml.load(f.read())
+    settings = commonFunc.getYaml('settings')
     pins = getPinsFromHost(settings["master"])
     for pin in pins:
         pinSetup(pin,'in')
