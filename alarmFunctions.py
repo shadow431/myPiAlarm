@@ -37,12 +37,14 @@ def checkPin(pin):
     return GPIO.input(pin)
 
 def getPinsFromHost(server):
-    server = "http://"+str(server)+"/getpins?serNum="+str(getSerial())
+    server = "http://"+server+"/getpins?serNum="+str(getSerial())
     pins = yaml.load(urllib2.urlopen(server))
     return pins.keys() 
 
-def notifyHost(pin,status):
-    return str(pin)+": "+str(status) 
+def notifyHost(pin,status,server):
+    server = "http://"+server+"/pinstatus?pin="+str(pin)+"&status="+str(status)+"&serNum="+str(getSerial())
+    response = yaml.load(urllib2.urlopen(server))
+    return response
 
 def main():
     f = open('./settings.yaml','r')
@@ -52,13 +54,16 @@ def main():
         pinSetup(pin,'in')
 
     while True:
+        result = "Ok"
         for pin in pins:
             if pinStatus.has_key(pin) == False:
                 pinStatus[pin] = 0 
             current = checkPin(pin)
             if current != pinStatus[pin]:
-                print notifyHost(pin,current)
+                result = notifyHost(pin,current,settings["master"])
             pinStatus[pin] = current
+            if result != "Ok":
+                print "Failure to notifiy Host: "+str(result)
         time.sleep(.2)
 if __name__ == '__main__':
     main()
