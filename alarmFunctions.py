@@ -44,12 +44,13 @@ def getPinsFromHost(server):
 def notifyHost(pin,status):
     return str(pin)+": "+str(status) 
 
+def main():
     f = open('./settings.yaml','r')
     settings = yaml.load(f.read())
     pins = getPinsFromHost(settings["master"])
     for pin in pins:
         pinSetup(pin,'in')
-def main():
+
     while True:
         for pin in pins:
             if pinStatus.has_key(pin) == False:
