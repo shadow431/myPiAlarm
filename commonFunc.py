@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import smtplib
+import smtplib, yaml
 from email.mime.text import MIMEText
 
 settings = getYaml('settings')
@@ -16,3 +16,10 @@ def email(message):
     s.login(settings['email']['account'],settings['email']['pass'])
     s.sendmail(msg['From'],[msg['To']],msg.as_string())
     return s
+
+def getYaml(file):
+    f = open('./'+str(file)+'.yaml','r')
+    content = yaml.load(f.read())
+    f.close()
+    return content
+
