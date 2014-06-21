@@ -36,9 +36,28 @@ def pinSetup(pin,type):
 def checkPin(pin):
     return GPIO.input(pin)
 
+def getPinsFromHost(server):
+    server = "http://"+str(server)+"/getpins?serNum="+str(getSerial())
+    pins = yaml.load(urllib2.urlopen(server))
+    return pins.keys() 
 
+def notifyHost(pin,status):
+    return str(pin)+": "+str(status) 
 
 if __name__ == '__main__':
-    pin = 15
-    pinSetup(pin,'in')
-    print checkPin(15)
+    f = open('./settings.yaml','r')
+    settings = yaml.load(f.read())
+    print getSerial()
+    pins = getPinsFromHost(settings["master"])
+    for pin in pins:
+        pinSetup(pin,'in')
+
+    while True:
+        for pin in pins:
+            if pinStatus.has_key(pin) == False:
+                pinStatus[pin] = 0 
+            current = checkPin(pin)
+            if current != pinStatus[pin]:
+                print notifyHost(pin,current)
+            pinStatus[pin] = current
+        time.sleep(.2)
