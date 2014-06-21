@@ -53,6 +53,15 @@ def arm():
     writeStatus()
     return "Armed Zone" 
 
+#arm the alarm
+@app.route("/disarm",methods=['GET'])
+def disarm():
+    global sysStatus
+    zone = str(request.args.get('zone'))
+    sysStatus['armed'].remove(zone)
+    writeStatus()
+    return "Disarmed Zone" 
+
 def isArmed(zones):
     global sysStatus
 
