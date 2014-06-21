@@ -2,6 +2,12 @@
 import smtplib, yaml
 from email.mime.text import MIMEText
 
+def getYaml(file):
+    f = open('./'+str(file)+'.yaml','r')
+    content = yaml.load(f.read())
+    f.close()
+    return content
+
 settings = getYaml('settings')
 
 #Functions needed by Both master and Slave
@@ -16,10 +22,3 @@ def email(message):
     s.login(settings['email']['account'],settings['email']['pass'])
     s.sendmail(msg['From'],[msg['To']],msg.as_string())
     return s
-
-def getYaml(file):
-    f = open('./'+str(file)+'.yaml','r')
-    content = yaml.load(f.read())
-    f.close()
-    return content
-
