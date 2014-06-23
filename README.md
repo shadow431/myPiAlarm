@@ -2,13 +2,13 @@ This is my shot at making an Alarm that runs off a raspberryPi.
 
 To start that's all it is.  Motion, door, email, client, server.
 
-Why:
+####Why:
 
 I have always wanted to setup my own alarm to fit my needs not what an alarm company provides.  I also don't want to pay a fee to have it monitored when all they do is call me, and the police, who in my area wont respond if it isn't verified, but will still charge me a fee.
 
 I also want other fetures like: light control, smoke/carbon monitoring, HVAC control/monitoring, etc.  I want it in one easy to get place and so far haven't found it.  The trick with this many things and a pi is there aren't enough pins.  You could do wireless, but I dislike batteries.  So I set out to make it scalable to multipul pi's.  Also this way if your pi dies you only loose some lights, not all.
 
-How:
+####How:
 
 There are right now 5 python files:
 
@@ -23,7 +23,7 @@ master.py - This is the flask web app.  This tells the "client" what pins to mon
 piCheck.py - This can be setup on the "server" to run in cron to check if the "Client(s)" have been checking in regularly, of not fire off an email.
 
 
-Additional files:
+####Additional files:
 
 There are three addition yaml files needed to run the app:
 
@@ -38,6 +38,7 @@ email: {from: 'raspberrypi@domain.com', account: 'user@domain.com', pass: 'pass1
 ```
 pins:  This files sets up the pins, starting with the serial number of the pi the pins are connected to, followed my the pin number and additional info about the pin.  The Pin number does need to match the pin numbering method in the python code.
 
+```yaml
 ---
 pins:
   0000000000000000:
@@ -55,17 +56,18 @@ pins:
       zones:
         - all
         - doors
-
+```
 Status: This file will pretty well handle itself.  It mainly exists so if somethings causes a reboot of the app (flask debug mode) it will maintain the status.
 
+```yaml
 armed: []
 checkIn: {00000000561867f6: 1403481094.475717}
 pins:
   00000000561867f6: {11: 0, 13: 0}
+```
 
 
-
-Project Status/resources:
+####Project Status/resources:
 
 To see where the project is, what features it has, what is in progress/next up go here (https://app.smartsheet.com/b/publish?EQBCT=f59be841a7e646c5a504a180e6625dd1).
 
