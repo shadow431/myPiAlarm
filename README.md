@@ -30,12 +30,12 @@ There are three addition yaml files needed to run the app:
 settings.yaml, pins.yaml, status.yaml.
 
 Settings:  This file defines things need to run the app, where to server is *master*, how often to re-check the configuration/when should we have heard last from the pi, and email settings
-
+```yaml
 ---
 master: '127.0.0.1:5000'
 checkinTime: 300
 email: {from: 'raspberrypi@domain.com', account: 'user@domain.com', pass: 'pass123', server: 'smtp.domain.com', subject: 'Message From Alarm', to: 'heyyou@domain.com'}
-
+```
 pins:  This files sets up the pins, starting with the serial number of the pi the pins are connected to, followed my the pin number and additional info about the pin.  The Pin number does need to match the pin numbering method in the python code.
 
 ---
