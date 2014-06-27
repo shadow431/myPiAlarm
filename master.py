@@ -24,7 +24,7 @@ def getpins():
     global allPins
     global sysStatus
 
-    serialNum = request.args.get('serNum')
+    serialNum = str(request.args.get('serNum'))
     sysStatus['checkIn'][serialNum] = time.time()
     writeStatus()
     return yaml.dump(allPins[serialNum])
