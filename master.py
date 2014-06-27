@@ -17,7 +17,11 @@ if type(sysStatus) is not dict:
     sysStatus['armed'] = []
     sysStatus['checkIn'] = {}
 
+@app.route("/getstatus")
+def getStatus():
+    global sysStatus
 
+    retrun yaml.dump(sysStatus)
 #return the pins for the request pi serial number
 @app.route("/getpins", methods=['GET'])
 def getpins():
