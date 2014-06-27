@@ -16,6 +16,7 @@ if type(sysStatus) is not dict:
     sysStatus['pins'] ={}
     sysStatus['armed'] = []
     sysStatus['checkIn'] = {}
+    sysStatus['triggered'] = []
 
 @app.route("/getstatus")
 def getStatus():
@@ -73,6 +74,7 @@ def isArmed(zones):
         return False 
     for zone in zones:
         if zone in sysStatus['armed']:
+            sysStatus['triggered'].append[zone]
             return True
     return False 
 
