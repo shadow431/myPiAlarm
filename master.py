@@ -21,7 +21,7 @@ if type(sysStatus) is not dict:
 def getStatus():
     global sysStatus
 
-    retrun yaml.dump(sysStatus)
+    return yaml.dump(sysStatus)
 #return the pins for the request pi serial number
 @app.route("/getpins", methods=['GET'])
 def getpins():
