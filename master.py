@@ -9,7 +9,8 @@ app = Flask(__name__)
 
 settings = commonFunc.getYaml('settings')
 #Get the list of pins from yaml file
-allPins = commonFunc.getYaml('pins')['pins']
+pins = commonFunc.getYaml('pins')
+allPins = pins['pins']
 sysStatus = commonFunc.getYaml('status')
 if type(sysStatus) is not dict:
     sysStatus = {}
@@ -62,11 +63,18 @@ def arm():
 @app.route("/disarm",methods=['GET'])
 def disarm():
     global sysStatus
+    global allPins
     zone = str(request.args.get('zone'))
-    sysStatus['armed'].remove(zone)
-    sysStatus['triggered'].remove(zone)
-    writeStatus()
-    return "Disarmed Zone" 
+    code = int(request.args.get('code'))
+
+    if zone in pins['codes'][code]['zones']:
+        sysStatus['armed'].remove(zone)
+        if zone in sysStatus['triggered']:
+            sysStatus['triggered'].remove(zone)
+        writeStatus()
+        return "OK"
+    else:
+        return "Error: "+yaml.dump(pins['codes'].keys())
 
 def isArmed(zones):
     global sysStatus
