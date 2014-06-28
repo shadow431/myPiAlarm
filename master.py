@@ -75,7 +75,7 @@ def isArmed(zones):
         return False 
     for zone in zones:
         if zone in sysStatus['armed']:
-            if zone not in sysStatus['triggered']
+            if zone not in sysStatus['triggered']:
                 sysStatus['triggered'].append(zone)
             return True
     return False 
