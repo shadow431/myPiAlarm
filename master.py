@@ -64,6 +64,7 @@ def disarm():
     global sysStatus
     zone = str(request.args.get('zone'))
     sysStatus['armed'].remove(zone)
+    sysStatus['triggered'].remove(zone)
     writeStatus()
     return "Disarmed Zone" 
 
@@ -74,7 +75,8 @@ def isArmed(zones):
         return False 
     for zone in zones:
         if zone in sysStatus['armed']:
-            sysStatus['triggered'].append[zone]
+            if zone not in sysStatus['triggered']
+                sysStatus['triggered'].append(zone)
             return True
     return False 
 
