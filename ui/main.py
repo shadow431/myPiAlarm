@@ -3,7 +3,24 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.clock import Clock
 from subprocess import call
+import urllib2, commonFunc, yaml
+
+
+def getStatus():
+    settings = commonFunc.getYaml('settings')
+    server = "http://"+settings['master']+"/getstatus" 
+    while True: 
+        try: 
+            status = yaml.load(urllib2.urlopen(server)) 
+        except urllib2.URLError,e: 
+            commonFunc.email("There was an error connecting to: "+server+"\nError:"+str(e))
+            status={}
+            status['triggered']=[]
+            continue  
+        break 
+    return status 
 
 class MainScreen(Screen):
     pass
@@ -50,6 +67,17 @@ class uiApp(App):
         root.add_widget(sm)
         return root
 
+    def start(self):
+        Clock.schedule_interval(self.callback, 1)
+
+    def callback(self, dt):
+        if self.sm.current != 'pin':
+            status = getStatus()
+            if len(status['triggered']) > 0:
+                self.sm.current = 'pin'
 
 if __name__ == '__main__':
-    uiApp().run()
+
+    app = uiApp()
+    app.start()
+    app.run()
