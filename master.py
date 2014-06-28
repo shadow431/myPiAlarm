@@ -22,8 +22,15 @@ if type(sysStatus) is not dict:
 @app.route("/getstatus")
 def getStatus():
     global sysStatus
+    global pins
 
-    return yaml.dump(sysStatus)
+    get = str(request.args.get('get'))
+    if get == 'zones':
+        result = yaml.dump(pins['zones'])
+    else:
+        result = yaml.dump(sysStatus)
+    return result
+
 #return the pins for the request pi serial number
 @app.route("/getpins", methods=['GET'])
 def getpins():
