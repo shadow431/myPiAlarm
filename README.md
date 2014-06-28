@@ -36,7 +36,7 @@ master: '127.0.0.1:5000'
 checkinTime: 300
 email: {from: 'raspberrypi@domain.com', account: 'user@domain.com', pass: 'pass123', server: 'smtp.domain.com', subject: 'Message From Alarm', to: 'heyyou@domain.com'}
 ```
-**pins:**  This files sets up the pins, starting with the serial number of the pi the pins are connected to, followed my the pin number and additional info about the pin.  The Pin number does need to match the pin numbering method in the python code.
+**pins:**  This files sets up the pins, starting with the serial number of the pi the pins are connected to, followed by the pin number and additional info about the pin.  The Pin number does need to match the pin numbering method in the python code. This file also contains info regarding alarm codes. Under 'codes' you get an dictionary of access codes.  Each code is a dictionary with a 'zones' key that is a list of system zones that code has access to.
 
 ```yaml
 ---
@@ -56,6 +56,11 @@ pins:
       zones:
         - all
         - doors
+codes:
+  1234:
+    zones:[all,doors]
+  5678:
+    zones:[doors]
 ```
 **Status**: This file will pretty well handle itself.  It mainly exists so if somethings causes a reboot of the app (flask debug mode) it will maintain the status.
 
