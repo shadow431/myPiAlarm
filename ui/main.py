@@ -1,35 +1,84 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.gridlayout import GridLayout
 from kivy.clock import Clock
 from subprocess import call
+from functools import partial
 import urllib2, commonFunc, yaml
 
 
-def getStatus():
+def getStatus(*args):
     settings = commonFunc.getYaml('settings')
-    server = "http://"+settings['master']+"/getstatus" 
-    while True: 
-        try: 
-            status = yaml.load(urllib2.urlopen(server)) 
-        except urllib2.URLError,e: 
-            commonFunc.email("There was an error connecting to: "+server+"\nError:"+str(e))
-            status={}
+    server = "http://"+settings['master']+"/getstatus"
+    if len(args) > 0:
+        server += "?get="+args[0]
+    
+    try: 
+        status = yaml.load(urllib2.urlopen(server)) 
+    except urllib2.URLError,e: 
+        commonFunc.email("There was an error connecting to: "+server+"\nError:"+str(e))
+        status={}
+        if len(args) == 0:
             status['triggered']=[]
-            continue  
-        break 
+
     return status 
 
 class MainScreen(Screen):
+    buttons = {'main':['alarm']}
+    def __init__(self, **kwargs):
+        super(MainScreen, self).__init__(**kwargs)
+    def on_enter(self):
+        grid = GridLayout(cols=3)
+        for btn in self.buttons[self.name]:
+            button = MainButton(text=btn)
+            button.bind(on_press=partial(app.change_view,btn,''))
+            grid.add_widget(button)
+        self.add_widget(grid)
     pass
 
 class PinScreen(Screen):
+    def __init__(self, **kwargs):
+        super(PinScreen, self).__init__(**kwargs)
+    def on_enter(self):
+        grid = GridLayout(cols=3)
+        for btn in ['1','2','3','4','5','6','7','8','9','*','0','#']:
+            button = MainButton(text=btn)
+            button.bind(on_press=partial(app.getPin,btn))
+            grid.add_widget(button)
+        clrBtn = MainButton(text='Clear')
+        clrBtn.bind(on_press=app.clearPin)
+        grid.add_widget(clrBtn)
+        znBtn = MainButton(text=app.zone)
+        znBtn.bind(on_press=partial(app.zoneSet,app.zone))
+        grid.add_widget(znBtn)
+        allBtn = MainButton(text='All Zones')
+        allBtn.bind(on_press=partial(app.zoneSet,'*'))
+        grid.add_widget(allBtn)
+        self.add_widget(grid)
     pass
 
 class AlarmScreen(Screen):
-    pass
+    def __init__(self, **kwargs):
+        super(AlarmScreen, self).__init__(**kwargs)
+    #    self.draw_grid()
+
+    def on_enter(self):
+        action = 'arm'
+        grid = GridLayout(cols=3)
+        zones = getStatus('zones')
+        status = getStatus()
+        for zone in zones:
+            if zone in status['armed']:
+                bgColor = [255,0,0,1]
+            else:
+                bgColor = [0,255,0,1]
+            button = Button(text=zone,background_color=bgColor)
+            button.bind(on_press=partial(app.change_view,'pin',zone))
+            grid.add_widget(button)
+        self.add_widget(grid)
 
 class MainButton(Button):
     bgColor = [0,0,255,1]
@@ -41,21 +90,33 @@ class MainWidget(Widget):
 
 class uiApp(App):
     pin = ''
-    def change_view(self, l):
+    zone = ''
+    def clearPin(self,*args):
+        self.pin=''
+    def change_view(self, l, zone,*args):
         #d = ('left', 'up', 'down', 'right')
         #di = d.index(self.sm.transition.direction)
-        #self.sm.transition.direction = d[(di + 1) % len(d)]
+        #self.sm.transition.direction = d[(di + 1) % len(d)]i
+        self.zone = zone
         self.sm.current = l
 
-    def getPin(self, digit):
+    def getPin(self, digit, *args):
         self.pin = self.pin + digit
-    def disarm(self,zone):
-        print(self.pin)
-        self.pin = ''
-        self.sm.current = 'alarm'
 
-    def remove_screen(self, *l):
-        self.sm.remove_widget(self.sm.get_screen('test1'))
+    def zoneSet(self,zone,*args):
+        settings = commonFunc.getYaml('settings')
+        status = getStatus()
+        if self.zone in status['armed']:
+            action = 'disarm'
+        else:
+            action = 'arm'
+        server = 'http://'+settings['master']+'/'+action+'?code='+self.pin+'&zone='+self.zone
+        print server
+        result = urllib2.urlopen(server)
+        print result
+        self.pin = ''
+        self.sm.current = 'main'
+
     def build(self):
         root = Screen() 
         self.sm = sm = ScreenManager()
@@ -74,6 +135,7 @@ class uiApp(App):
         if self.sm.current != 'pin':
             status = getStatus()
             if len(status['triggered']) > 0:
+                self.zone = status['triggered'][0]
                 self.sm.current = 'pin'
 
 if __name__ == '__main__':
