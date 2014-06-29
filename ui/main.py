@@ -8,7 +8,16 @@ from kivy.clock import Clock
 from subprocess import call
 from functools import partial
 import urllib2, commonFunc, yaml
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    print("Error import RPi.GPIO!  Are you sudo?")
 
+
+#Set the Pin Numbering Mode: BOARD=the pin number on the board, BCM=the channel numbers
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(22,GPIO.OUT)
+GPIO.output(22,1)
 
 def getStatus(*args):
     settings = commonFunc.getYaml('settings')
@@ -91,12 +100,16 @@ class MainWidget(Widget):
 class uiApp(App):
     pin = ''
     zone = ''
+    def scheduleBlank(self):
+        Clock.unschedule(self.blackOut)
+        Clock.schedule_once(self.blackOut,30)
     def clearPin(self,*args):
         self.pin=''
     def change_view(self, l, zone,*args):
         #d = ('left', 'up', 'down', 'right')
         #di = d.index(self.sm.transition.direction)
         #self.sm.transition.direction = d[(di + 1) % len(d)]i
+        self.scheduleBlank()
         self.zone = zone
         self.sm.current = l
 
@@ -104,6 +117,7 @@ class uiApp(App):
         self.pin = self.pin + digit
 
     def zoneSet(self,zone,*args):
+        self.scheduleBlank()
         settings = commonFunc.getYaml('settings')
         status = getStatus()
         if self.zone in status['armed']:
@@ -130,6 +144,7 @@ class uiApp(App):
 
     def start(self):
         Clock.schedule_interval(self.callback, 1)
+        Clock.schedule_once(self.blackOut,30)
 
     def callback(self, dt):
         if self.sm.current != 'pin':
@@ -137,6 +152,11 @@ class uiApp(App):
             if len(status['triggered']) > 0:
                 self.zone = status['triggered'][0]
                 self.sm.current = 'pin'
+                return
+    def blackOut(self,dt):
+        print "Turn off screen"
+        GPIO.output(22,1)
+        return
 
 if __name__ == '__main__':
 
