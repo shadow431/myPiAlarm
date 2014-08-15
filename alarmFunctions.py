@@ -20,7 +20,46 @@ pins = {}
 pinStatus = {} 
 settings = {}
 
+def getTemp(server):
+    sensors = getTempSensors(server)
+    for sensor in sensors:
+        crc = 'NO'
+        while crc != 'YES':
+            content = readTemp(sensor)
+            lines = content.split("\n")
+            crc = lines[0].split("=")[1].split()[1]
+            temp = lines[1].split("=")[1]
+        updateTemp(sensor,temp,server)
+    return temp
+def readTemp(sensor):
+   f = open('/sys/bus/w1/devices/'+sensor+'/w1_slave','r')
+   content = f.read()
+   f.close()
+   return content
+def getTempSensors(server):
+    #ask the Server what pins this pi should be monitoring
+    server = "http://"+server+"/gettempsensors?serNum="+str(getSerial())
+    while True:
+        try:
+            sensors = yaml.load(urllib2.urlopen(server))
+        except urllib2.URLError,e:
+            commonFunc.email("There was an error connecting to: "+server+"\nError:"+str(e))
+            time.sleep((30*60))
+            continue 
+        break
+    return sensors.keys() 
 
+def updateTemp(sensor,temp,server):
+    server = "http://"+server+"/updatetemp?serNum="+str(getSerial())+"&sensor="+sensor+"&temp="+str(temp)
+    while True:
+        try:
+            sensors = urllib2.urlopen(server)
+        except urllib2.URLError,e:
+            commonFunc.email("There was an error connecting to: "+server+"\nEorror:"+str(e))
+            time.sleep((30*60))
+            continue
+        break
+    return
 def getSerial():
   # Extract serial from cpuinfo file
   cpuserial = "0000000000000000"
@@ -83,6 +122,8 @@ def main():
     # do the work
     start()
     restarted = False
+    gotTemp = False
+    firstRun = True
 
     while True:
         #Is it time to refesh settings and pins?
@@ -95,6 +136,17 @@ def main():
         else:
             restarted = False
 
+        #is it time to check the temp
+        tempMod = int((startTime-time.time())%settings['tempTime'])
+        if ((mod == 0) or (firstRun == True)) and gotTemp == False:
+            getTemp(settings['master'])
+            gotTemp = True
+            firstRun = False
+        elif gotTemp == True and mod == 0:
+            pass
+        else:
+            gotTemp = False
+        
         #Check the pins
         result = "Ok"
         for pin in pins:

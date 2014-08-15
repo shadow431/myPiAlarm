@@ -14,6 +14,7 @@ settings = commonFunc.getYaml('settings')
 #Get the list of pins from yaml file
 pins = commonFunc.getYaml('pins')
 allPins = pins['pins']
+allTemps = pins['temps']
 sysStatus = commonFunc.getYaml('status')
 if type(sysStatus) is not dict:
     sysStatus = {}
@@ -45,6 +46,18 @@ def getpins():
     writeStatus()
     return yaml.dump(allPins[serialNum])
 
+#return the temperature sensors for the request pi serial number
+@app.route("/gettempsensors", methods=['GET'])
+def getTempSensors():
+    global allPins
+    global allTemps
+    global sysStatus
+
+    serialNum = str(request.args.get('serNum'))
+    sysStatus['checkIn'][serialNum] = time.time()
+    writeStatus()
+    return yaml.dump(allTemps[serialNum])
+
 #recieve the status of the pins
 @app.route("/pinstatus",methods=['GET'])
 def recievePinStatus():
@@ -59,6 +72,19 @@ def recievePinStatus():
     if isArmed(allPins[serialNum][pin]['zones'])  == True and status==1:
         email = commonFunc.email('Pin: '+str(pin)+'\nStatus: '+str(status))
     return "Ok" 
+
+#recieve the temps
+@app.route("/updatetemp",methods=['GET'])
+def updateTemp():
+    global allPins
+    global sysStatus
+
+    serialNum = str(request.args.get('serNum'))
+    sensor = request.args.get('sensor')
+    temp = int(request.args.get('temp'))
+    sysStatus['checkIn'][serialNum] = time.time()
+    setTemp(serialNum,sensor,temp)
+    return "Ok"
 
 #arm the alarm
 @app.route("/arm",methods=['GET'])
@@ -124,6 +150,18 @@ def setStatus(serNum,pin,status):
         sysStatus['pins'][serNum] = {}
     sysStatus['pins'][serNum][pin] = status
     writeStatus()
+    return
+
+def setTemp(serNum,sensor,temp):
+    temp = float(temp)
+    tempData = {}
+    tempData['time'] = time.time()
+    tempData['r'] = temp
+    tempData['c'] = temp/1000
+    tempData['f'] = 9.0/5.0 * tempData['c'] + 32
+    myFile = open(sensor+".yaml","a+")
+    myFile.write(yaml.dump(tempData))
+    myFile.close()
     return
 
 def writeStatus():
