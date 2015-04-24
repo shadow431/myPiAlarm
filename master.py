@@ -167,7 +167,7 @@ def setTemp(serNum,sensor,temp):
 def writeStatus():
     global sysStatus
 
-    statusYaml = open('/home/pi/myAlarm.new/status.yaml','r+')
+    statusYaml = open('./status.yaml','r+')
     statusYaml.write(yaml.dump(sysStatus))
     statusYaml.close
     return
