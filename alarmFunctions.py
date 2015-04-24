@@ -1,5 +1,12 @@
 #!/usr/bin/python
 
+######
+##run:
+## modprobe w1-gpio
+## modprobe w1-therm
+######
+
+
 #Import needed modules
 import time, urllib2, yaml, commonFunc
 try:
@@ -19,9 +26,9 @@ startTime = time.time()
 pins = {}
 pinStatus = {} 
 settings = {}
+sensors = {}
 
 def getTemp(server):
-    sensors = getTempSensors(server)
     for sensor in sensors:
         crc = 'NO'
         while crc != 'YES':
@@ -112,9 +119,11 @@ def start():
     #setup settings and pins from stored yaml files
     global settings
     global pins
+    global sensors
 
     settings = commonFunc.getYaml('settings')
     pins = getPinsFromHost(settings["master"])
+    sensors = getTempSensors(settings["master"])
     for pin in pins:
         pinSetup(pin,'in')
 
