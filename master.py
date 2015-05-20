@@ -4,8 +4,8 @@ from flask import Flask, make_response
 import yaml, commonFunc, time, random, StringIO, os
 os.environ['MPLCONFIGDIR'] = "/home/pi/"
 from flask import request
-#from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-#from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 from datetime import datetime
 sysStatus = {}
 app = Flask(__name__)
@@ -113,22 +113,22 @@ def disarm():
         return "Error: "+yaml.dump(pins['codes'].keys())
 
 #show the temp history
-#@app.route("/temp.png")
-#def plot():
-#    fig = Figure()
-#    axis = fig.add_subplot(1, 1, 1)
-#    
-#    ys = [50,50.4,20,60,50]
-#    xs = [datetime(2014,8,14,23,50),datetime(2014,8,14,23,55),datetime(2014,8,15,0,0),datetime(2014,8,15,0,5),datetime(2014,8,15,0,10)]
-#
-# 
-#    axis.plot(xs, ys)
-#    canvas = FigureCanvas(fig)
-#    output = StringIO.StringIO()
-#    canvas.print_png(output)
-#    response = make_response(output.getvalue())
-#    response.mimetype = 'image/png'
-#    return response
+@app.route("/temp.png")
+def plot():
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    
+    ys = [50,50.4,20,60,50]
+    xs = [datetime(2014,8,14,23,50),datetime(2014,8,14,23,55),datetime(2014,8,15,0,0),datetime(2014,8,15,0,5),datetime(2014,8,15,0,10)]
+
+ 
+    axis.plot(xs, ys)
+    canvas = FigureCanvas(fig)
+    output = StringIO.StringIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
 
 def isArmed(zones):
     global sysStatus
