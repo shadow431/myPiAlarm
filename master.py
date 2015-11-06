@@ -2,10 +2,11 @@
 
 from flask import Flask, make_response
 import yaml, commonFunc, time, random, StringIO, os
+from yaml import CLoader, CDumper
 os.environ['MPLCONFIGDIR'] = "/home/pi/"
 from flask import request
-#from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-#from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 from datetime import datetime
 sysStatus = {}
 app = Flask(__name__)
@@ -113,22 +114,25 @@ def disarm():
         return "Error: "+yaml.dump(pins['codes'].keys())
 
 #show the temp history
-#@app.route("/temp.png")
-#def plot():
-#    fig = Figure()
-#    axis = fig.add_subplot(1, 1, 1)
-#    
+@app.route("/temp.png")
+def plot():
+    fig = Figure(figsize=(40,40))
+    axis = fig.add_subplot(1, 1, 1)
+
+    temps = getTempLists()
 #    ys = [50,50.4,20,60,50]
 #    xs = [datetime(2014,8,14,23,50),datetime(2014,8,14,23,55),datetime(2014,8,15,0,0),datetime(2014,8,15,0,5),datetime(2014,8,15,0,10)]
-#
-# 
-#    axis.plot(xs, ys)
-#    canvas = FigureCanvas(fig)
-#    output = StringIO.StringIO()
-#    canvas.print_png(output)
-#    response = make_response(output.getvalue())
-#    response.mimetype = 'image/png'
-#    return response
+    ys = temps[1]
+    xs = temps[2]
+
+ 
+    axis.plot(xs, ys)
+    canvas = FigureCanvas(fig)
+    output = StringIO.StringIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
 
 def isArmed(zones):
     global sysStatus
@@ -141,6 +145,41 @@ def isArmed(zones):
                 sysStatus['triggered'].append(zone)
             return True
     return False 
+@app.route("/temps.test")
+def getTempLists():
+
+    global allTemps
+
+    cel = []
+    fer = []
+    ttime = []
+    sensors = []
+    temps = []
+
+    for ser in allTemps:
+        for sensor in allTemps[ser]:
+            sensors.append(sensor)
+#    f = open('./'+str(sensors[0])+'.yaml','r')
+#    content = f.read()
+#    f.close()
+#    content = content.split('\n')
+    i = 0
+    with open('./'+str(sensors[0])+'.yaml','r') as f:
+        for line in f:
+            thisLine = yaml.load(line, Loader=CLoader)
+            cel.append(thisLine['c'])
+            fer.append(thisLine['f'])
+            #ttime.append(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(thisLine['time'])))
+            ttime.append(datetime.fromtimestamp(thisLine['time']))
+            i = i+1
+
+#    for temp in temps:
+#        cel.append(temp['c'])
+#        fer.append(temp['f'])
+#        time.append(temp['time'])
+
+
+    return [cel,fer,ttime]
 
 def setStatus(serNum,pin,status):
     global sysStatus 
