@@ -19,11 +19,13 @@ def pinSetup(pin,type):
 
 
 if __name__ == '__main__':
-    pins = [12]
+    pins = [12,19]
+    #pins = [12]
     for pin in pins:
         pinSetup(pin,'out')
 
-        for pin in pins:
-            GPIO.output(pin,1)
-            time.sleep(.2)
-            GPIO.output(pin,0)
+    for pin in pins:
+        GPIO.output(pin,1)
+        time.sleep(.5)
+        GPIO.output(pin,0)
+        time.sleep(2)
