@@ -12,12 +12,15 @@ try:
     import RPi.GPIO as GPIO
 except RuntimeError:
     print("Error import RPi.GPIO!  Are you sudo?")
+except:
+    hasGPIO = False
 
 
 #Set the Pin Numbering Mode: BOARD=the pin number on the board, BCM=the channel numbers
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(22,GPIO.OUT)
-GPIO.output(22,1)
+if hasGPIO:
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(22,GPIO.OUT)
+    GPIO.output(22,1)
 
 def getStatus(*args):
     settings = commonFunc.getYaml('settings')
@@ -155,7 +158,9 @@ class uiApp(App):
                 return
     def blackOut(self,dt):
         print "Turn off screen"
-        GPIO.output(22,1)
+        try: GPIO.output(22,1)
+        except:
+            pass
         return
 
 if __name__ == '__main__':

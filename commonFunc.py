@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 
 #Get content from yaml formated file and return it as a dictionary/list
 def getYaml(file):
-    f = open('/opt/myAlarm/'+str(file)+'.yaml','r')
+    f = open('./'+str(file)+'.yaml','r')
     content = yaml.load(f.read())
     f.close()
     return content

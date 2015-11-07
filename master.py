@@ -5,8 +5,8 @@ import yaml, commonFunc, time, random, StringIO, os
 from yaml import CLoader, CDumper
 os.environ['MPLCONFIGDIR'] = "/home/pi/"
 from flask import request
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
+#from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+#from matplotlib.figure import Figure
 from datetime import datetime
 sysStatus = {}
 app = Flask(__name__)
