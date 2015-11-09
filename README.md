@@ -1,6 +1,6 @@
-This is my shot at making an Alarm that runs off a raspberryPi.
+This is my shot at making an Alarm that runs off a raspberryPi, either single raspberryPi, multipule raspberryPi's or in collaboration with arduinos.
 
-To start that's all it is.  Motion, door, email, client, server.
+To start that's all it is.  Motion, door, email, client, server, Photo Frame.
 
 ####Why:
 
@@ -20,7 +20,7 @@ There are right now 5 python files:
 
 **master.py** - This is the flask web app.  This tells the "client" what pins to monitor, tracks armed zones and system status. If a zone is armed this will fire off the notification email of the action.
 
-**piCheck.py** - This can be setup on the "server" to run in cron to check if the "Client(s)" have been checking in regularly, of not fire off an email.
+**piCheck.py** - This can be setup on the "server" to run in cron to check if the "Client(s)" have been checking in regularly, if not fire off an email.
 
 
 ####Additional files:
