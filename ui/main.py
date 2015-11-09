@@ -1,13 +1,18 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
+from kivy.uix.behaviors import *
+from kivy.config import Config
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.anchorlayout import AnchorLayout
+from kivy.graphics import *
+from kivy.uix.image import *
 from kivy.clock import Clock
 from subprocess import call
 from functools import partial
-import urllib2, commonFunc, yaml
+import urllib2, commonFunc, yaml,os,sys
 try:
     import RPi.GPIO as GPIO
     hasGPIO = True
@@ -38,15 +43,26 @@ def getStatus(*args):
             status['triggered']=[]
 
     return status 
+def getPos(config='',cols=3,rows=2):
+  return (100,100)
+
+def getImages(self):
+    rootPath = '/mnt/raid1/I/pictures/Pictures/'
+    self.photos = []
+    a = True
+    for image in os.listdir(rootPath):
+        if 'JPG' in image:
+            self.photos.append(rootPath + image)
+
 
 class MainScreen(Screen):
     buttons = {'main':['alarm']}
     def __init__(self, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
     def on_enter(self):
-        grid = GridLayout(cols=3)
+        grid = MyLayout()
         for btn in self.buttons[self.name]:
-            button = MainButton(text=btn)
+            button = MainButton(text=btn,pos=getPos())
             button.bind(on_press=partial(app.change_view,btn,''))
             grid.add_widget(button)
         self.add_widget(grid)
@@ -92,6 +108,39 @@ class AlarmScreen(Screen):
             button.bind(on_press=partial(app.change_view,'pin',zone))
             grid.add_widget(button)
         self.add_widget(grid)
+class ImgButton(ButtonBehavior, AsyncImage):
+    pass
+
+class ImageScreen(Screen):
+    def __init__(self, **kwargs):
+        super(ImageScreen, self).__init__(**kwargs)
+        getImages(self)
+    def img(self):
+        print self.curImage
+        return '' 
+    def on_enter(self):
+        grid = AnchorLayout()
+        self.img = ImgButton(size=(800,480))
+        self.img.source=self.nextImage()
+        self.img.bind(on_press=partial(app.change_view,'main'))
+        grid.add_widget(self.img)
+        self.add_widget(grid)
+        Clock.schedule_interval(self.callback,10)
+
+    def nextImage(self):
+        if (len(self.photos) > 0):
+            img=self.photos.pop()
+        else:
+            getImages(self)
+            img = self.nextImage()
+        return img
+    def callback(self, instalnce):
+        self.curImage=self.nextImage()
+        self.img.source=self.curImage
+
+class MyLayout(GridLayout):
+    img = AsyncImage(size=(800,480))
+    background_image = ObjectProperty(img)
 
 class MainButton(Button):
     bgColor = [0,0,255,1]
@@ -104,9 +153,12 @@ class MainWidget(Widget):
 class uiApp(App):
     pin = ''
     zone = ''
+    background = 'background'
+    def build_config(self, config):
+        config.setdefaults('graphics',{'fullscreen':1,'hieght':480,'width':800})
     def scheduleBlank(self):
-        Clock.unschedule(self.blackOut)
-        Clock.schedule_once(self.blackOut,30)
+        Clock.unschedule(self.photoFrame)
+        Clock.schedule_once(self.photoFrame,30)
     def clearPin(self,*args):
         self.pin=''
     def change_view(self, l, zone,*args):
@@ -136,20 +188,25 @@ class uiApp(App):
         self.sm.current = 'main'
 
     def build(self):
+        config = self.config
         root = Screen() 
         self.sm = sm = ScreenManager()
 
         sm.add_widget(MainScreen(name='main'))
         sm.add_widget(PinScreen(name='pin'))
         sm.add_widget(AlarmScreen(name='alarm'))
+        sm.add_widget(ImageScreen(name='image'))
 
         root.add_widget(sm)
         return root
 
     def start(self):
         Clock.schedule_interval(self.callback, 1)
-        Clock.schedule_once(self.blackOut,30)
+        Clock.schedule_once(self.photoFrame,10)
 
+    def photoFrame(self, dt):
+        self.sm.current = 'image'
+        return
     def callback(self, dt):
         if self.sm.current != 'pin':
             status = getStatus()
@@ -157,6 +214,7 @@ class uiApp(App):
                 self.zone = status['triggered'][0]
                 self.sm.current = 'pin'
                 return
+
     def blackOut(self,dt):
         print "Turn off screen"
         try: GPIO.output(22,1)
