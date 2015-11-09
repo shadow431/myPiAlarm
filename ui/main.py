@@ -10,14 +10,15 @@ from functools import partial
 import urllib2, commonFunc, yaml
 try:
     import RPi.GPIO as GPIO
+    hasGPIO = True
 except RuntimeError:
     print("Error import RPi.GPIO!  Are you sudo?")
 except:
     hasGPIO = False
 
 
-#Set the Pin Numbering Mode: BOARD=the pin number on the board, BCM=the channel numbers
 if hasGPIO:
+    #Set the Pin Numbering Mode: BOARD=the pin number on the board, BCM=the channel numbers
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(22,GPIO.OUT)
     GPIO.output(22,1)
