@@ -9,6 +9,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.graphics import *
 from kivy.uix.image import *
+from kivy.cache import Cache
 from kivy.clock import Clock
 from subprocess import call
 from functools import partial
@@ -46,27 +47,55 @@ def getStatus(*args):
 def getPos(config='',cols=3,rows=2):
   return (100,100)
 
-def getImages(self):
-    rootPath = '/mnt/raid1/I/pictures/Pictures/'
-    self.photos = []
-    a = True
-    for image in os.listdir(rootPath):
-        if 'JPG' in image:
-            self.photos.append(rootPath + image)
+class Background():
+    photos = []
+    curImage = ''
+    def __init__(self):
+        self.nextImage()
+
+    def image(self):
+        return self.curImage
+
+    def nextImage(self):
+        if (len(self.photos) > 0):
+            img=self.photos.pop()
+        else:
+            self.getImages()
+            img = self.nextImage()
+        self.curImage = img
+        return img
+
+    def getImages(self):
+        rootPath = '/mnt/raid1/I/pictures/Pictures/'
+        self.photos = []
+        a = True
+        for image in os.listdir(rootPath):
+            if 'JPG' in image:
+                self.photos.append(rootPath + image)
 
 
 class MainScreen(Screen):
     buttons = {'main':['alarm']}
     def __init__(self, **kwargs):
+        self.bgImage = kwargs['background']
         super(MainScreen, self).__init__(**kwargs)
     def on_enter(self):
-        grid = MyLayout()
+        grid = GridLayout()
+        self.bg = ImgButton(size=(800,480))
+        self.bg.source = self.bgImage.image()
         for btn in self.buttons[self.name]:
             button = MainButton(text=btn,pos=getPos())
             button.bind(on_press=partial(app.change_view,btn,''))
             grid.add_widget(button)
+        self.add_widget(self.bg)
         self.add_widget(grid)
-    pass
+        Clock.schedule_interval(self.callback,20)
+
+    def on_leave(self):
+        Clock.unschedule(self.callback)
+
+    def callback(self,instalnce):
+        self.bg.source=self.bgImage.nextImage()
 
 class PinScreen(Screen):
     def __init__(self, **kwargs):
@@ -113,34 +142,24 @@ class ImgButton(ButtonBehavior, AsyncImage):
 
 class ImageScreen(Screen):
     def __init__(self, **kwargs):
+        self.bgImg = kwargs['background']
         super(ImageScreen, self).__init__(**kwargs)
-        getImages(self)
-    def img(self):
-        print self.curImage
-        return '' 
+
     def on_enter(self):
         grid = AnchorLayout()
         self.img = ImgButton(size=(800,480))
-        self.img.source=self.nextImage()
+        self.img.source=self.bgImg.image()
         self.img.bind(on_press=partial(app.change_view,'main'))
         grid.add_widget(self.img)
         self.add_widget(grid)
-        Clock.schedule_interval(self.callback,10)
+        Clock.schedule_interval(self.callback,20)
 
-    def nextImage(self):
-        if (len(self.photos) > 0):
-            img=self.photos.pop()
-        else:
-            getImages(self)
-            img = self.nextImage()
-        return img
-    def callback(self, instalnce):
-        self.curImage=self.nextImage()
-        self.img.source=self.curImage
+    def on_leave(self):
+        Clock.unschedule(self.callback)
 
-class MyLayout(GridLayout):
-    img = AsyncImage(size=(800,480))
-    background_image = ObjectProperty(img)
+    def callback(self,instalnce):
+        print 'ImageScreen callback'
+        self.img.source=self.bgImg.nextImage()
 
 class MainButton(Button):
     bgColor = [0,0,255,1]
@@ -153,7 +172,7 @@ class MainWidget(Widget):
 class uiApp(App):
     pin = ''
     zone = ''
-    background = 'background'
+    bg = Background() 
     def build_config(self, config):
         config.setdefaults('graphics',{'fullscreen':1,'hieght':480,'width':800})
     def scheduleBlank(self):
@@ -192,10 +211,10 @@ class uiApp(App):
         root = Screen() 
         self.sm = sm = ScreenManager()
 
-        sm.add_widget(MainScreen(name='main'))
-        sm.add_widget(PinScreen(name='pin'))
-        sm.add_widget(AlarmScreen(name='alarm'))
-        sm.add_widget(ImageScreen(name='image'))
+        sm.add_widget(MainScreen(name='main',background=self.bg))
+        sm.add_widget(PinScreen(name='pin',background=self.bg))
+        sm.add_widget(AlarmScreen(name='alarm',background=self.bg))
+        sm.add_widget(ImageScreen(name='image',background=self.bg))
 
         root.add_widget(sm)
         return root
@@ -207,6 +226,7 @@ class uiApp(App):
     def photoFrame(self, dt):
         self.sm.current = 'image'
         return
+
     def callback(self, dt):
         if self.sm.current != 'pin':
             status = getStatus()
