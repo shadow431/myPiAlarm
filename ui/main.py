@@ -81,18 +81,22 @@ class MainScreen(Screen):
         super(MainScreen, self).__init__(**kwargs)
     def on_enter(self):
         grid = GridLayout()
+        self.grid2 = AnchorLayout()
         self.bg = ImgButton(size=(800,480))
         self.bg.source = self.bgImage.image()
+        self.bg.bind(on_press=partial(app.change_view,'main'))
+        self.grid2.add_widget(self.bg)
         for btn in self.buttons[self.name]:
             button = MainButton(text=btn,pos=getPos())
             button.bind(on_press=partial(app.change_view,btn,''))
             grid.add_widget(button)
-        self.add_widget(self.bg)
+        self.add_widget(self.grid2)
         self.add_widget(grid)
         Clock.schedule_interval(self.callback,20)
 
     def on_leave(self):
         Clock.unschedule(self.callback)
+        self.remove_widget(self.grid2)
 
     def callback(self,instalnce):
         self.bg.source=self.bgImage.nextImage()
@@ -146,16 +150,17 @@ class ImageScreen(Screen):
         super(ImageScreen, self).__init__(**kwargs)
 
     def on_enter(self):
-        grid = AnchorLayout()
+        self.grid = AnchorLayout()
         self.img = ImgButton(size=(800,480))
         self.img.source=self.bgImg.image()
         self.img.bind(on_press=partial(app.change_view,'main'))
-        grid.add_widget(self.img)
-        self.add_widget(grid)
+        self.grid.add_widget(self.img)
+        self.add_widget(self.grid)
         Clock.schedule_interval(self.callback,20)
 
     def on_leave(self):
         Clock.unschedule(self.callback)
+        self.remove_widget(self.grid)
 
     def callback(self,instalnce):
         print 'ImageScreen callback'
