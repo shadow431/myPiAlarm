@@ -4,4 +4,4 @@ build
 *.pyc
 *.old
 *.pyo
-./venv
+venv
