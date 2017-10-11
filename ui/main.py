@@ -26,8 +26,8 @@ except:
 if hasGPIO:
     #Set the Pin Numbering Mode: BOARD=the pin number on the board, BCM=the channel numbers
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(22,GPIO.OUT)
-    GPIO.output(22,1)
+    #GPIO.setup(22,GPIO.OUT)
+    #GPIO.output(22,1)
 
 def getStatus(*args):
     settings = commonFunc.getYaml('settings')
