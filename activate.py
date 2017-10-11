@@ -19,7 +19,7 @@ def pinSetup(pin,type):
 
 
 if __name__ == '__main__':
-    pins = [12,19]
+    pins = [15,16]
     #pins = [12]
     for pin in pins:
         pinSetup(pin,'out')

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from flask import Flask, make_response
-import yaml, commonFunc, time, random, StringIO, os
+import yaml, commonFunc, time, random, StringIO, os, socket
 #from yaml import CLoader, CDumper
 os.environ['MPLCONFIGDIR'] = "/home/pi/"
 from flask import request
@@ -113,30 +113,29 @@ def disarm():
     else:
         return "Error: "+yaml.dump(pins['codes'].keys())
 
-#show the temp history
-@app.route("/temp.png")
-def plot():
-    fig = Figure(figsize=(40,40))
-    axis = fig.add_subplot(1, 1, 1)
-
-    temps = getTempLists()
-#    ys = [50,50.4,20,60,50]
-#    xs = [datetime(2014,8,14,23,50),datetime(2014,8,14,23,55),datetime(2014,8,15,0,0),datetime(2014,8,15,0,5),datetime(2014,8,15,0,10)]
-    ys = temps[1]
-    xs = temps[2]
-
- 
-    axis.plot(xs, ys)
-    canvas = FigureCanvas(fig)
-    output = StringIO.StringIO()
-    canvas.print_png(output)
-    response = make_response(output.getvalue())
-    response.mimetype = 'image/png'
-    return response
+##show the temp history
+#@app.route("/temp.png")
+#def plot():
+#    fig = Figure(figsize=(40,40))
+#    axis = fig.add_subplot(1, 1, 1)
+#
+#    temps = getTempLists()
+##    ys = [50,50.4,20,60,50]
+##    xs = [datetime(2014,8,14,23,50),datetime(2014,8,14,23,55),datetime(2014,8,15,0,0),datetime(2014,8,15,0,5),datetime(2014,8,15,0,10)]
+#    ys = temps[1]
+#    xs = temps[2]
+#
+# 
+#    axis.plot(xs, ys)
+#    canvas = FigureCanvas(fig)
+#    output = StringIO.StringIO()
+#    canvas.print_png(output)
+#    response = make_response(output.getvalue())
+#    response.mimetype = 'image/png'
+#    return response
 
 def isArmed(zones):
     global sysStatus
-
     if len(sysStatus['armed']) == 0:
         return False 
     for zone in zones:
@@ -203,6 +202,15 @@ def setTemp(serNum,sensor,temp):
     myFile = open(tFile,"a+")
     myFile.write(yaml.dump(tempData))
     myFile.close()
+    message = "raspberrypi.temp." + str(sensor) +".raw" + " " + str(tempData['r']) + " " + str(tempData['time']) +"\n"
+    message += "raspberrypi.temp." + str(sensor) +".celcius" + " " + str(tempData['c']) + " " + str(tempData['time']) +"\n"
+    message += "raspberrypi.temp." + str(sensor) +".fahrenheit" + " " + str(tempData['f']) + " " + str(tempData['time']) +"\n"
+    sock = socket.socket()
+    sock.connect(('192.168.22.109',2003))
+    while message:
+        bytes = sock.send(message)
+        message = message[bytes:]
+    sock.close()
     return
 
 def writeStatus():
