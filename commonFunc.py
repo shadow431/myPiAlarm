@@ -18,7 +18,7 @@ def email(message):
     msg['From'] = settings['email']['from'] 
     msg['To'] = settings['email']['to']
 
-    s = smtplib.SMTP_SSL(settings['email']['server'])
-    s.login(settings['email']['account'],settings['email']['pass'])
+    s = smtplib.SMTP(host=settings['email']['server'],port=25)
+    #s.login(settings['email']['account'],settings['email']['pass'])
     s.sendmail(msg['From'],[msg['To']],msg.as_string())
     return s
