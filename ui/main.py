@@ -13,7 +13,7 @@ from kivy.cache import Cache
 from kivy.clock import Clock
 from subprocess import call
 from functools import partial
-import urllib2, commonFunc, yaml,os,sys
+import urllib2, commonFunc, yaml,os,sys, zipfile
 try:
     import RPi.GPIO as GPIO
     hasGPIO = True
@@ -44,6 +44,7 @@ def getStatus(*args):
             status['triggered']=[]
 
     return status 
+
 def getPos(config='',cols=3,rows=2):
   return (100,100)
 
@@ -66,7 +67,30 @@ class Background():
         return img
 
     def getImages(self):
-        rootPath = '/mnt/raid1/I/pictures/Pictures/'
+        if not os.path.isdir('download'):
+            os.makedirs('download')
+        if not os.path.isdir('tmp'):
+            os.makedirs('tmp')
+        folder = './tmp/'
+        for the_file in os.listdir(folder):
+            file_path = os.path.join(folder, the_file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception, e:
+                print e
+        try:
+            f = urllib2.urlopen('http://192.168.22.14:3000/retrieve?res=800x480') #CONFIG
+            with open('./download/photos.zip',"wb") as local_file:
+                local_file.write(f.read())
+        except:
+            print "Error"
+        fh = open('./download/photos.zip','rb')
+        z = zipfile.ZipFile(fh)
+        for name in z.namelist():
+          z.extract(name,'./tmp/')
+        fh.close()
+        rootPath = './tmp/'
         self.photos = []
         a = True
         for image in os.listdir(rootPath):
