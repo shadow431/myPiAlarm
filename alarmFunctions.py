@@ -151,7 +151,7 @@ def main():
 
         #is it time to check the temp
         tempMod = int((startTime-time.time())%settings['tempTime'])
-        if ((mod == 0) or (firstRun == True)) and gotTemp == False:
+        if ((tempMod == 0) or (firstRun == True)) and gotTemp == False:
             getTemp(settings['master'])
             gotTemp = True
             firstRun = False
@@ -161,21 +161,21 @@ def main():
             gotTemp = False
         
         #Check the pins
-        result = "Ok"
-        for pin in pins:
-            #Do I have the last pin status
-            if pinStatus.has_key(pin) == False:
-                pinStatus[pin] = 0
-            #Get the current status of the pin
-            current = checkPin(pin)
-            #if pin status has change notify the server
-            if current != pinStatus[pin]:
-                result = notifyHost(pin,current,settings["master"])
-            #update pinStatus for later
-            pinStatus[pin] = current
-            #output if the connection to server failed
-            if result != "Ok":
-                print "Failure to notifiy Host: "+str(result)
+       # result = "Ok"
+       # for pin in pins:
+       #     #Do I have the last pin status
+       #     if pinStatus.has_key(pin) == False:
+       #         pinStatus[pin] = 0
+       #     #Get the current status of the pin
+       #     current = checkPin(pin)
+       #     #if pin status has change notify the server
+       #     if current != pinStatus[pin]:
+       #         result = notifyHost(pin,current,settings["master"])
+       #     #update pinStatus for later
+       #     pinStatus[pin] = current
+       #     #output if the connection to server failed
+       #     if result != "Ok":
+       #         print "Failure to notifiy Host: "+str(result)
         time.sleep(.2)
 
 def pinAction(acctedPin):
