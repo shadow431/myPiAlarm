@@ -31,7 +31,7 @@ if hasGPIO:
 
 def getStatus(*args):
     settings = commonFunc.getYaml('settings')
-    server = "http://"+settings['master']+"/getstatus"
+    server = "http://"+settings['master']+"/getstatus" #CONFIG
     if len(args) > 0:
         server += "?get="+args[0]
     
@@ -100,13 +100,14 @@ class Background():
 
 class MainScreen(Screen):
     buttons = {'main':['alarm']}
+    settings = commonFunc.getYaml('settings')
     def __init__(self, **kwargs):
         self.bgImage = kwargs['background']
         super(MainScreen, self).__init__(**kwargs)
     def on_enter(self):
         grid = GridLayout()
         self.grid2 = AnchorLayout()
-        self.bg = ImgButton(size=(800,480))
+        self.bg = ImgButton(size=(800,480)) #CONFIG
         self.bg.source = self.bgImage.image()
         self.bg.bind(on_press=partial(app.change_view,'main'))
         self.grid2.add_widget(self.bg)
@@ -116,7 +117,7 @@ class MainScreen(Screen):
             grid.add_widget(button)
         self.add_widget(self.grid2)
         self.add_widget(grid)
-        Clock.schedule_interval(self.callback,20)
+        Clock.schedule_interval(self.callback,self.settings['timeOut']) #CONFIG
 
     def on_leave(self):
         Clock.unschedule(self.callback)
@@ -169,25 +170,25 @@ class ImgButton(ButtonBehavior, AsyncImage):
     pass
 
 class ImageScreen(Screen):
+    settings = commonFunc.getYaml('settings')
     def __init__(self, **kwargs):
         self.bgImg = kwargs['background']
         super(ImageScreen, self).__init__(**kwargs)
 
     def on_enter(self):
         self.grid = AnchorLayout()
-        self.img = ImgButton(size=(800,480))
+        self.img = ImgButton(size=(800,480)) #CONFIG
         self.img.source=self.bgImg.image()
         self.img.bind(on_press=partial(app.change_view,'main'))
         self.grid.add_widget(self.img)
         self.add_widget(self.grid)
-        Clock.schedule_interval(self.callback,20)
+        Clock.schedule_interval(self.callback,self.settings['imageDwel']) #CONFIG
 
     def on_leave(self):
         Clock.unschedule(self.callback)
         self.remove_widget(self.grid)
 
     def callback(self,instalnce):
-        print 'ImageScreen callback'
         self.img.source=self.bgImg.nextImage()
 
 class MainButton(Button):
@@ -203,7 +204,7 @@ class uiApp(App):
     zone = ''
     bg = Background() 
     def build_config(self, config):
-        config.setdefaults('graphics',{'fullscreen':1,'hieght':480,'width':800})
+        config.setdefaults('graphics',{'fullscreen':1,'hieght':480,'width':800}) #CONFIG
     def scheduleBlank(self):
         Clock.unschedule(self.photoFrame)
         Clock.schedule_once(self.photoFrame,30)
@@ -228,7 +229,7 @@ class uiApp(App):
             action = 'disarm'
         else:
             action = 'arm'
-        server = 'http://'+settings['master']+'/'+action+'?code='+self.pin+'&zone='+self.zone
+        server = 'http://'+settings['master']+'/'+action+'?code='+self.pin+'&zone='+self.zone #CONFIG
         print server
         result = urllib2.urlopen(server)
         print result
@@ -249,8 +250,8 @@ class uiApp(App):
         return root
 
     def start(self):
-        Clock.schedule_interval(self.callback, 1)
-        Clock.schedule_once(self.photoFrame,10)
+        #Clock.schedule_interval(self.callback, 1) #CONFIG ??? replacing with register and listen for issue
+        Clock.schedule_once(self.photoFrame,10) #CONFIG
 
     def photoFrame(self, dt):
         self.sm.current = 'image'
