@@ -84,7 +84,11 @@ def getSerial():
 def pinSetup(pin,type):
     #configure the GPIO pin for in or out
     if type == 'in':
-        GPIO.setup(pin, GPIO.IN)
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        try:
+          GPIO.add_event_detect(pin, GPIO.BOTH, callback=pinAction, bouncetime=200) # Set up an interrupt to look for button presses
+        except:
+          pass
     elif type == 'out':
         GPIO.setup(pin, GPIO.OUT)
 
@@ -173,6 +177,12 @@ def main():
             if result != "Ok":
                 print "Failure to notifiy Host: "+str(result)
         time.sleep(.2)
+
+def pinAction(acctedPin):
+    status = checkPin(acctedPin)
+    print "alarm"
+    notifyHost(acctedPin,status,settings["master"])
+    return
 
 if __name__ == '__main__':
     main()
