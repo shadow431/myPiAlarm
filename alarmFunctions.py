@@ -84,7 +84,7 @@ def getSerial():
 def pinSetup(pin,type):
     #configure the GPIO pin for in or out
     if type == 'in':
-        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(pin, GPIO.IN) #, pull_up_down=GPIO.PUD_DOWN)
         try:
           GPIO.add_event_detect(pin, GPIO.BOTH, callback=pinAction, bouncetime=200) # Set up an interrupt to look for button presses
         except:
@@ -180,7 +180,6 @@ def main():
 
 def pinAction(acctedPin):
     status = checkPin(acctedPin)
-    print "alarm"
     notifyHost(acctedPin,status,settings["master"])
     return
 
