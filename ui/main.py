@@ -99,22 +99,29 @@ class Background():
 
 
 class MainScreen(Screen):
-    buttons = {'main':['alarm']}
+    buttons = {'main':['alarm','poweroff']}
     settings = commonFunc.getYaml('settings')
     def __init__(self, **kwargs):
         self.bgImage = kwargs['background']
         super(MainScreen, self).__init__(**kwargs)
     def on_enter(self):
-        grid = GridLayout()
+        grid = GridLayout(cols=3,rows=3)
         self.grid2 = AnchorLayout()
         self.bg = ImgButton(size=(800,480)) #CONFIG
         self.bg.source = self.bgImage.image()
         self.bg.bind(on_press=partial(app.change_view,'main'))
         self.grid2.add_widget(self.bg)
+        btnNum = 0
         for btn in self.buttons[self.name]:
             button = MainButton(text=btn,pos=getPos())
             button.bind(on_press=partial(app.change_view,btn,''))
             grid.add_widget(button)
+            btnNum += 1
+        while btnNum < 9:
+            button = EmptyButton(pos=getPos())
+            button.bind()
+            grid.add_widget(button)
+            btnNum += 1
         self.add_widget(self.grid2)
         self.add_widget(grid)
         Clock.schedule_interval(self.callback,self.settings['timeOut']) #CONFIG
@@ -125,6 +132,20 @@ class MainScreen(Screen):
 
     def callback(self,instalnce):
         self.bg.source=self.bgImage.nextImage()
+
+class PoweroffScreen(Screen):
+    def __init__(self, **kwargs):
+        super(PoweroffScreen, self).__init__(**kwargs)
+    def on_enter(self):
+        grid = GridLayout(cols=3,rows=3)
+        YesBtn = MainButton(text='Yes')
+        YesBtn.bind(on_press=app.shutdown)
+        grid.add_widget(YesBtn)
+        NoBtn = MainButton(text='No')
+        NoBtn.bind(on_press=partial(app.change_view,'main'))
+        grid.add_widget(NoBtn)
+        self.add_widget(grid)
+    pass
 
 class PinScreen(Screen):
     def __init__(self, **kwargs):
@@ -195,6 +216,10 @@ class MainButton(Button):
     bgColor = [0,0,255,1]
     pass
 
+class EmptyButton(Button):
+    bgColor = [255,0,0,0]
+    pass
+
 class MainWidget(Widget):
     manager = ObjectProperty(None)
     pass
@@ -221,6 +246,9 @@ class uiApp(App):
     def getPin(self, digit, *args):
         self.pin = self.pin + digit
 
+    def shutdown(self,*args):
+        os.system('sudo shutdown -h now')
+
     def zoneSet(self,zone,*args):
         self.scheduleBlank()
         settings = commonFunc.getYaml('settings')
@@ -245,6 +273,7 @@ class uiApp(App):
         sm.add_widget(PinScreen(name='pin',background=self.bg))
         sm.add_widget(AlarmScreen(name='alarm',background=self.bg))
         sm.add_widget(ImageScreen(name='image',background=self.bg))
+        sm.add_widget(PoweroffScreen(name='poweroff',background=self.bg))
 
         root.add_widget(sm)
         return root
