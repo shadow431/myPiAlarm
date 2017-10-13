@@ -22,12 +22,12 @@ except RuntimeError:
 except:
     hasGPIO = False
 
+settings = commonFunc.getYaml('settings')
 
 if hasGPIO:
     #Set the Pin Numbering Mode: BOARD=the pin number on the board, BCM=the channel numbers
     GPIO.setmode(GPIO.BOARD)
-    #GPIO.setup(22,GPIO.OUT)
-    #GPIO.output(22,1)
+    GPIO.setup(settings['motionPin'],GPIO.IN)
 
 def getStatus(*args):
     settings = commonFunc.getYaml('settings')
@@ -97,6 +97,23 @@ class Background():
             if 'JPG' in image:
                 self.photos.append(rootPath + image)
 
+class BlankScreen(Screen):
+    settings = commonFunc.getYaml('settings')
+    def __init__(self, **kwargs):
+        self.bgImage = kwargs['background']
+        super(BlankScreen, self).__init__(**kwargs)
+    def on_enter(self):
+        grid = GridLayout()
+        self.grid2 = AnchorLayout()
+        self.bg = ImgButton(size=(800,480)) #CONFIG
+        self.bg.source = self.bgImage.image()
+        self.bg.bind(on_press=partial(app.change_view,'main'))
+        self.grid2.add_widget(self.bg)
+        self.add_widget(self.grid2)
+        self.add_widget(grid)
+
+    def on_leave(self):
+        self.remove_widget(self.grid2)
 
 class MainScreen(Screen):
     buttons = {'main':['alarm','poweroff']}
@@ -225,6 +242,7 @@ class MainWidget(Widget):
     pass
 
 class uiApp(App):
+    settings = commonFunc.getYaml('settings')
     pin = ''
     zone = ''
     bg = Background() 
@@ -274,13 +292,17 @@ class uiApp(App):
         sm.add_widget(AlarmScreen(name='alarm',background=self.bg))
         sm.add_widget(ImageScreen(name='image',background=self.bg))
         sm.add_widget(PoweroffScreen(name='poweroff',background=self.bg))
+        sm.add_widget(BlankScreen(name='blank',background=self.bg))
 
         root.add_widget(sm)
         return root
 
     def start(self):
+        self.backLightOn(self)
         #Clock.schedule_interval(self.callback, 1) #CONFIG ??? replacing with register and listen for issue
-        Clock.schedule_once(self.photoFrame,10) #CONFIG
+        Clock.schedule_once(self.photoFrame,self.settings['timeOut']) #CONFIG
+        Clock.schedule_once(self.backLightOff,self.settings['blackOut']) #CONFIG
+        GPIO.add_event_detect(self.settings['motionPin'], GPIO.RISING, callback=self.updateMotion, bouncetime=900) # Set up an interrupt to look for button presses
 
     def photoFrame(self, dt):
         self.sm.current = 'image'
@@ -293,10 +315,27 @@ class uiApp(App):
                 self.zone = status['triggered'][0]
                 self.sm.current = 'pin'
                 return
-
-    def blackOut(self,dt):
-        print "Turn off screen"
-        try: GPIO.output(22,1)
+    def updateMotion(self,dt):
+        self.backLightOn(self)
+        Clock.unschedule(self.backLightOff)
+        Clock.schedule_once(self.backLightOff,self.settings['blackOut'])
+        return
+    def backLightOff(self,dt):
+        self.sm.current = 'blank'
+        try: 
+          backlight = open('/sys/class/backlight/rpi_backlight/bl_power','r+')
+          backlight.write("1")
+          backlight.close
+        except:
+            pass
+        return
+    def backLightOn(self,dt):
+        try: 
+          backlight = open('/sys/class/backlight/rpi_backlight/bl_power','r+')
+          if backlight.read() == "1\n":
+            backlight.write("0")
+            self.sm.current = 'image'
+          backlight.close
         except:
             pass
         return
