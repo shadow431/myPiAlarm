@@ -72,7 +72,18 @@ def recievePinStatus():
     setStatus(serialNum,pin,status)
     if isArmed(allPins[serialNum][pin]['zones'])  == True and status==1:
         email = commonFunc.email('Pin: '+str(pin)+'\nStatus: '+str(status))
+    message = "raspberrypi.pins."+str(serialNum)+"."+str(pin)+" "+str(status)+" "+str(time.time()) +"\n"
+    sendToGraphite(message)
     return "Ok" 
+
+def sendToGraphite(message):
+    sock = socket.socket()
+    sock.connect(('192.168.22.109',2003))
+    while message:
+        bytes = sock.send(message)
+        message = message[bytes:]
+    sock.close()
+    return
 
 #recieve the temps
 @app.route("/updatetemp",methods=['GET'])
@@ -205,12 +216,7 @@ def setTemp(serNum,sensor,temp):
     message = "raspberrypi.temp." + str(sensor) +".raw" + " " + str(tempData['r']) + " " + str(tempData['time']) +"\n"
     message += "raspberrypi.temp." + str(sensor) +".celcius" + " " + str(tempData['c']) + " " + str(tempData['time']) +"\n"
     message += "raspberrypi.temp." + str(sensor) +".fahrenheit" + " " + str(tempData['f']) + " " + str(tempData['time']) +"\n"
-    sock = socket.socket()
-    sock.connect(('192.168.22.109',2003))
-    while message:
-        bytes = sock.send(message)
-        message = message[bytes:]
-    sock.close()
+    sendToGraphite(message)
     return
 
 def writeStatus():
