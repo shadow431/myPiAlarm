@@ -17,6 +17,7 @@ pins = commonFunc.getYaml('pins')
 allPins = pins['pins']
 allTemps = pins['temps']
 sysStatus = commonFunc.getYaml('status')
+graphMessages = []
 if type(sysStatus) is not dict:
     sysStatus = {}
     sysStatus['pins'] ={}
@@ -77,11 +78,19 @@ def recievePinStatus():
     return "Ok" 
 
 def sendToGraphite(message):
+    global graphMessages
+    graphMessages.append(message)
+
     sock = socket.socket()
-    sock.connect(('192.168.22.109',2003))
-    while message:
-        bytes = sock.send(message)
-        message = message[bytes:]
+    try:
+        sock.connect(('192.168.22.109',2003))
+    except:
+        return
+    while graphMessages:
+        thisMessage = graphMessages.pop()
+        while thisMessage:
+            bytes = sock.send(thisMessage)
+            thisMessage = thisMessage[bytes:]
     sock.close()
     return
 
