@@ -20,5 +20,5 @@ def email(message):
 
     s = smtplib.SMTP(host=settings['email']['server'],port=25)
     #s.login(settings['email']['account'],settings['email']['pass'])
-    s.sendmail(msg['From'],[msg['To']],msg.as_string())
+    s.sendmail(msg['From'],msg['To'].split(),msg.as_string())
     return s
