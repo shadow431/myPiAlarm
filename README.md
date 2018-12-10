@@ -29,7 +29,7 @@ There are three addition yaml files needed to run the app:
 
 settings.yaml, pins.yaml, status.yaml.
 
-**Settings:**  This file defines things need to run the app, where to server is (master), how often to re-check the configuration/when should we have heard last from the pi, and email settings
+**Settings:**  This file defines things need to run the app, where to server is (master), how often to re-check the configuration/when should we have heard last from the pi, and email settings.  *Note*:you can use a space delimited list of email adresses
 ```yaml
 ---
 master: '127.0.0.1:5000'
@@ -44,15 +44,18 @@ pins:
   0000000000000000:
     15:
       name: 'Front Door' 
+      type: 'reed'
       zones:
         - all
         - doors
     11:
       name: 'living room motion'
+      type: 'motion'
       zones:
         - all
     13:
       name: 'Back Door'
+      type: 'dekota'
       zones:
         - all
         - doors
