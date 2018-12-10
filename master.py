@@ -74,7 +74,8 @@ def recievePinStatus():
     if isArmed(allPins[serialNum][pin]['zones'])  == True and status==1:
         email = commonFunc.email('Pin: '+str(pin)+'\nStatus: '+str(status))
     message = "raspberrypi.pins."+str(serialNum)+"."+str(pin)+" "+str(status)+" "+str(time.time()) +"\n"
-    sendToGraphite(message)
+    if status==1:
+      sendToGraphite(message)
     return "Ok" 
 
 def sendToGraphite(message):
