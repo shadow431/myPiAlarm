@@ -219,7 +219,7 @@ def setTemp(serNum,sensor,temp):
     tempData['c'] = temp/1000
     tempData['f'] = 9.0/5.0 * tempData['c'] + 32
     tFile = "./"+str(sensor)+".yaml"
-    print tFile
+    #print tFile
     myFile = open(tFile,"a+")
     myFile.write(yaml.dump(tempData))
     myFile.close()
