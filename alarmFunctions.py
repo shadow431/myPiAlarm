@@ -127,7 +127,10 @@ def start():
 
     settings = commonFunc.getYaml('settings')
     pins = getPinsFromHost(settings["master"])
-    sensors = getTempSensors(settings["master"])
+    try:
+       sensors = getTempSensors(settings["master"])
+    except:
+       pass
     for pin in pins:
         pinSetup(pin,'in')
 
@@ -150,15 +153,16 @@ def main():
             restarted = False
 
         #is it time to check the temp
-        tempMod = int((startTime-time.time())%settings['tempTime'])
-        if ((tempMod == 0) or (firstRun == True)) and gotTemp == False:
-            getTemp(settings['master'])
-            gotTemp = True
-            firstRun = False
-        elif gotTemp == True and mod == 0:
-            pass
-        else:
-            gotTemp = False
+        if sensors > 0:
+          tempMod = int((startTime-time.time())%settings['tempTime'])
+          if ((tempMod == 0) or (firstRun == True)) and gotTemp == False:
+              getTemp(settings['master'])
+              gotTemp = True
+              firstRun = False
+          elif gotTemp == True and mod == 0:
+              pass
+          else:
+              gotTemp = False
         
         #Check the pins
        # result = "Ok"
@@ -180,9 +184,18 @@ def main():
 
 def pinAction(acctedPin):
     status = checkPin(acctedPin)
-    print "alarm"
     notifyHost(acctedPin,status,settings["master"])
     return
 
+def backLightOff():
+    try: 
+      backlight = open('/sys/class/backlight/rpi_backlight/bl_power','r+')
+      backlight.write("1")
+      backlight.close
+    except:
+        pass
+    return
+
 if __name__ == '__main__':
+    backLightOff()
     main()

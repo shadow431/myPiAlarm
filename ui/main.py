@@ -148,6 +148,7 @@ class MainScreen(Screen):
         self.remove_widget(self.grid2)
 
     def callback(self,instalnce):
+        self.manager.current = 'image'
         self.bg.source=self.bgImage.nextImage()
 
 class PoweroffScreen(Screen):
