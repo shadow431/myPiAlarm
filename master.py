@@ -83,7 +83,7 @@ def sendToGraphite(message):
 
     sock = socket.socket()
     try:
-        sock.connect(('192.168.22.109',2003))
+        sock.connect(('graphite.allcomputergeek.net',2003))
     except:
         return
     while graphMessages:
