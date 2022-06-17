@@ -1,5 +1,5 @@
 modprobe w1-gpio
 modprobe w1-therm
-python master.py &>> alarm.log &
+python3 master.py &>> alarm.log &
 sleep 20
-python alarmFunctions.py &>> alarmFunctions.log &
+python3 alarmFunctions.py &>> alarmFunctions.log &

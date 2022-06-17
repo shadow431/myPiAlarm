@@ -1,4 +1,4 @@
-aptitude install python-dev
+apt install python-dev
 pip install flask
 pip install pyyaml
 pip install rpi.gpio
