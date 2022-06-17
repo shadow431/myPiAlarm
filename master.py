@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from flask import Flask, make_response
-import yaml, commonFunc, time, random, StringIO, os, socket
+import yaml, commonFunc, time, random, io, os, socket
 #from yaml import CLoader, CDumper
 os.environ['MPLCONFIGDIR'] = "/home/pi/"
 from flask import request
@@ -73,7 +73,7 @@ def recievePinStatus():
     setStatus(serialNum,pin,status)
     if isArmed(allPins[serialNum][pin]['zones'])  == True and status==1:
         email = commonFunc.email('Pin: '+str(pin)+'\nStatus: '+str(status))
-    message = "raspberrypi.pins."+str(serialNum)+"."+str(pin)+" "+str(status)+" "+str(time.time()) +"\n"
+    message = "raspberrypi.pins."+str(serialNum)+"."+str(allPins[serialNum][pin]['name'])+" "+str(status)+" "+str(time.time()) +"\n"
     sendToGraphite(message)
     return "Ok" 
 
@@ -89,7 +89,7 @@ def sendToGraphite(message):
     while graphMessages:
         thisMessage = graphMessages.pop()
         while thisMessage:
-            bytes = sock.send(thisMessage)
+            bytes = sock.send(str.encode(thisMessage))
             thisMessage = thisMessage[bytes:]
     sock.close()
     return
@@ -131,7 +131,7 @@ def disarm():
         writeStatus()
         return "OK"
     else:
-        return "Error: "+yaml.dump(pins['codes'].keys())
+        return "Error: "+yaml.dump(list(pins['codes'].keys()))
 
 ##show the temp history
 #@app.route("/temp.png")

@@ -8,7 +8,7 @@
 
 
 #Import needed modules
-import time, urllib2, yaml, commonFunc
+import time, urllib.request, urllib.error, urllib.parse, yaml, commonFunc
 try:
     import RPi.GPIO as GPIO
 except RuntimeError:
@@ -48,20 +48,20 @@ def getTempSensors(server):
     server = "http://"+server+"/gettempsensors?serNum="+str(getSerial())
     while True:
         try:
-            sensors = yaml.load(urllib2.urlopen(server))
-        except urllib2.URLError,e:
+            sensors = yaml.load(urllib.request.urlopen(server), Loader=yaml.FullLoader)
+        except urllib.error.URLError as e:
             commonFunc.email("There was an error connecting to: "+server+"\nError:"+str(e))
             time.sleep((30*60))
             continue 
         break
-    return sensors.keys() 
+    return list(sensors.keys()) 
 
 def updateTemp(sensor,temp,server):
     server = "http://"+server+"/updatetemp?serNum="+str(getSerial())+"&sensor="+sensor+"&temp="+str(temp)
     while True:
         try:
-            sensors = urllib2.urlopen(server)
-        except urllib2.URLError,e:
+            sensors = urllib.request.urlopen(server)
+        except urllib.error.URLError as e:
             commonFunc.email("There was an error connecting to: "+server+"\nEorror:"+str(e))
             time.sleep((30*60))
             continue
@@ -84,7 +84,7 @@ def getSerial():
 def pinSetup(pin,type):
     #configure the GPIO pin for in or out
     if type == 'in':
-        GPIO.setup(pin, GPIO.IN) #, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         try:
           GPIO.add_event_detect(pin, GPIO.BOTH, callback=pinAction, bouncetime=200) # Set up an interrupt to look for button presses
         except:
@@ -101,20 +101,20 @@ def getPinsFromHost(server):
     server = "http://"+server+"/getpins?serNum="+str(getSerial())
     while True:
         try:
-            pins = yaml.load(urllib2.urlopen(server))
-        except urllib2.URLError,e:
+            pins = yaml.load(urllib.request.urlopen(server), Loader=yaml.FullLoader)
+        except urllib.error.URLError as e:
             commonFunc.email("There was an error connecting to: "+server+"\nError:"+str(e))
             time.sleep((30*60))
             continue 
         break
-    return pins.keys() 
+    return list(pins.keys()) 
 
 def notifyHost(pin,status,server):
     #alert the server to a change in pin status
     server = "http://"+server+"/pinstatus?pin="+str(pin)+"&status="+str(status)+"&serNum="+str(getSerial())
     try:
-        response = yaml.load(urllib2.urlopen(server))
-    except urllib2.URLError,e:
+        response = yaml.load(urllib.request.urlopen(server), Loader=yaml.FullLoader)
+    except urllib.error.URLError as e:
         commonFunc.email("There was an error connecting to: "+server+"\nError:"+str(e))
         response = e
     return response
