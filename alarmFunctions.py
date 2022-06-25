@@ -81,16 +81,22 @@ def getSerial():
 
   return cpuserial
 
-def pinSetup(pin,type):
+def pinSetup(pin,number):
     #configure the GPIO pin for in or out
-    if type == 'in':
-        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    if pin['type'] in {'in', 'Dekota', 'Reed'}:
+        GPIO.setup(number, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         try:
-          GPIO.add_event_detect(pin, GPIO.BOTH, callback=pinAction, bouncetime=200) # Set up an interrupt to look for button presses
+          GPIO.add_event_detect(number, GPIO.BOTH, callback=pinAction, bouncetime=200) # Set up an interrupt to look for button presses
         except:
           pass
-    elif type == 'out':
-        GPIO.setup(pin, GPIO.OUT)
+    elif pin['type'] == 'expander':
+        GPIO.setup(number, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        try:
+          GPIO.add_event_detect(number, GPIO.BOTH, callback=expanderAction, bouncetime=200) # Set up an interrupt to look for button presses
+        except:
+          pass
+    elif pin['type'] == 'out':
+        GPIO.setup(number, GPIO.OUT)
 
 def checkPin(pin):
     #what is the current GPIO pin reading
@@ -107,7 +113,7 @@ def getPinsFromHost(server):
             time.sleep((30*60))
             continue 
         break
-    return list(pins.keys()) 
+    return pins 
 
 def notifyHost(pin,status,server):
     #alert the server to a change in pin status
@@ -128,8 +134,10 @@ def start():
     settings = commonFunc.getYaml('settings')
     pins = getPinsFromHost(settings["master"])
     sensors = getTempSensors(settings["master"])
+    print(pins)
     for pin in pins:
-        pinSetup(pin,'in')
+        print(pins[pin])
+        pinSetup(pins[pin],pin)
 
 def main():
     # do the work
@@ -181,6 +189,15 @@ def main():
 def pinAction(acctedPin):
     status = checkPin(acctedPin)
     notifyHost(acctedPin,status,settings["master"])
+    return
+
+def expanderAction(acctedPin):
+    status = checkPin(acctedPin)
+    #status = checkExpander()
+    notifyHost(acctedPin,status,settings["master"])
+    return
+
+def checkExpander():
     return
 
 if __name__ == '__main__':
