@@ -1,4 +1,4 @@
-class input_proc
+class input_proc:
 
   def sensor_status(n, num_sensors=16):
     bool_list = [True if digit == '1' else False for digit in bin(n)[2:]]
