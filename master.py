@@ -70,12 +70,36 @@ def recievePinStatus():
     pin = int(request.args.get('pin'))
     status = int(request.args.get('status'))
     sysStatus['checkIn'][serialNum] = time.time()
+    if allPins[serialNum][pin]['type'] == 'expander':
+      prev_status = sysStatus["pins"][serialNumber][pin]
+      setStatus(serialNum,pin,status)
+      pins = proc_expander(current_status,previous_status)
+      for e_pin,e_status in pins:
+        pin_proc(serialNum,e_pin,e_status)
+    else
+      pin_proc(serialNum,pin,status)
+    return "Ok"
+
+def proc_expander(current_status,previous_status):
+       list_current_status = current_status.split(",")
+       list_previous_status = previous_status.split(",")
+       diff_bools = {}
+       for n,s in list_current_status
+          current_bools = input_proc.sensor_status(s)
+          previous_bools = input_proc.sensor_status(list_previous_status[n])
+          diff_bools.update(input_proc.diff_values(current_bools, previous_bools, n))
+    return diff_bools
+
+def pin_proc(serialNum,pin,status)
+    global allPins
+    global sysStatus
+
     setStatus(serialNum,pin,status)
     if isArmed(allPins[serialNum][pin]['zones'])  == True and status==1:
         email = commonFunc.email('Pin: '+str(pin)+'\nStatus: '+str(status))
     message = "raspberrypi.pins."+str(serialNum)+"."+str(allPins[serialNum][pin]['name'])+" "+str(status)+" "+str(time.time()) +"\n"
     sendToGraphite(message)
-    return "Ok" 
+    return
 
 def sendToGraphite(message):
     global graphMessages

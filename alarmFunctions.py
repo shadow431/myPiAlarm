@@ -193,9 +193,9 @@ def pinAction(acctedPin):
 
 def expanderAction(acctedPin):
     print("Expander Pin!")
-    status = checkPin(acctedPin)
-    status1 = checkExpander()
-    print("Expander Status: {0}".format(status1))
+    status1 = checkPin(acctedPin)
+    status = checkExpander()
+    print("Expander Status: {0}".format(status))
     notifyHost(acctedPin,status,settings["master"])
     return
 
