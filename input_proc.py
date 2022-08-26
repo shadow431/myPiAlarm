@@ -13,7 +13,7 @@ class input_proc:
     i = 0
     while i < 16:
       if current_status[i] != past_status[i]:
-        diff[(i+boardNumbers)] = current_status[i]
+        diff[((i+1)+boardNumbers)] = current_status[i]
       i += 1
     return diff
 
