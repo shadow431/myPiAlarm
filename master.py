@@ -105,12 +105,14 @@ def pin_proc(serialNum,pin,status):
       armed = isArmed(allPins[serialNum][pin]['zones'])
       name = allPins[serialNum][pin]['name']
       alarm_state = allPins[serialNum][pin]['alarm_state']
+      action = allPins[serialNum][pin]['states'][status]
     except KeyError:
       armed = True
-      name = "Unknown"
+      name = pin
       alarm_state = status
+      action = status
     if armed == True and status == alarm_state:
-        email = commonFunc.email('Pin: '+str(pin)+'\nStatus: '+str(status))
+        email = commonFunc.email('Pin: '+str(name)+'\nStatus: '+str(action))
     message = "raspberrypi.pins."+str(serialNum)+"."+str(name)+" "+str(status)+" "+str(time.time()) +"\n"
     sendToGraphite(message)
     return
