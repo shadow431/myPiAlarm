@@ -2,9 +2,9 @@
 
 from flask import Flask, make_response
 from input_proc import input_proc
-import yaml, commonFunc, time, random, io, os, socket
+import yaml, commonFunc, time, random, io, os, socket, logging, sys
 #from yaml import CLoader, CDumper
-os.environ['MPLCONFIGDIR'] = "/home/pi/"
+#os.environ['MPLCONFIGDIR'] = "/home/pi/"
 from flask import request
 #from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 #from matplotlib.figure import Figure
@@ -25,6 +25,23 @@ if type(sysStatus) is not dict:
     sysStatus['armed'] = []
     sysStatus['checkIn'] = {}
     sysStatus['triggered'] = []
+
+'''
+Setup Logging
+'''
+
+logFile='alarm.log'
+logger = logging.getLogger('myPiAlarm.master')
+streamHandler = logging.StreamHandler(sys.stdout)
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler(logFile)
+#fh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s')
+fh.setFormatter(formatter)
+streamHandler.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(streamHandler)
+
 
 @app.route("/getstatus")
 def getStatus():
@@ -92,7 +109,7 @@ def proc_expander(current_status,previous_status):
        previous_bools = input_proc.sensor_status(int(list_previous_status[n]))
        diff_bools.update(input_proc.diff_values(current_bools, previous_bools, n))
        n = n+1
-    print(diff_bools)
+    logger.debug(diff_bools)
     return diff_bools
 
 def pin_proc(serialNum,pin,status):
@@ -250,18 +267,32 @@ def setStatus(serNum,pin,status):
     writeStatus()
     return
 
+###
+# Save the Tempurature
+###
 def setTemp(serNum,sensor,temp):
+    ##
+    #Proecess the tempurature and get he current time, and conversions
+    ##
     temp = float(temp)
     tempData = {}
     tempData['time'] = time.time()
     tempData['r'] = temp
     tempData['c'] = temp/1000
     tempData['f'] = 9.0/5.0 * tempData['c'] + 32
-    tFile = "./"+str(sensor)+".yaml"
-    #print tFile
-    myFile = open(tFile,"a+")
-    myFile.write(yaml.dump(tempData))
-    myFile.close()
+
+    ###
+    #Save the Tempurature to a yaml File
+    ###
+    #tFile = "./"+str(sensor)+".yaml"
+    #print(tFile)
+    #myFile = open(tFile,"a+")
+    #myFile.write(yaml.dump(tempData))
+    #myFile.close()
+
+    ###
+    # Wirte the temps to Graphite
+    ###
     message = "raspberrypi.temp." + str(sensor) +".raw" + " " + str(tempData['r']) + " " + str(tempData['time']) +"\n"
     message += "raspberrypi.temp." + str(sensor) +".celcius" + " " + str(tempData['c']) + " " + str(tempData['time']) +"\n"
     message += "raspberrypi.temp." + str(sensor) +".fahrenheit" + " " + str(tempData['f']) + " " + str(tempData['time']) +"\n"
@@ -277,4 +308,5 @@ def writeStatus():
     return
 
 if __name__ == "__main__":
+   logger.info("Starting App!")
    app.run(debug=True,host='0.0.0.0') 

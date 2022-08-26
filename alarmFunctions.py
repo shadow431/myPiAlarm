@@ -8,18 +8,7 @@
 
 
 #Import needed modules
-import time, urllib.request, urllib.error, urllib.parse, yaml, commonFunc, lib16in
-try:
-    import RPi.GPIO as GPIO
-except RuntimeError:
-    print("Error import RPi.GPIO!  Are you sudo?")
-
-
-#Set the Pin Numbering Mode: BOARD=the pin number on the board, BCM=the channel numbers
-GPIO.setmode(GPIO.BOARD)
-
-#Warnings?
-#GPIO.setwarnings(True)
+import time, urllib.request, urllib.error, urllib.parse, yaml, commonFunc, lib16in, logging, sys
 
 #setup needed variable and Dictionarys
 startTime = time.time()
@@ -27,6 +16,37 @@ pins = {}
 pinStatus = {} 
 settings = {}
 sensors = {}
+
+'''
+Setup Logging
+'''
+
+logFile='alarm.log'
+logger = logging.getLogger('myPiAlarm.alarmfunctions')
+streamHandler = logging.StreamHandler(sys.stdout)
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler(logFile)
+#fh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s')
+fh.setFormatter(formatter)
+streamHandler.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(streamHandler)
+
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    logger.error("Error import RPi.GPIO!  Are you sudo?")
+
+#Warnings?
+#GPIO.setwarnings(True)
+
+#Set the Pin Numbering Mode: BOARD=the pin number on the board, BCM=the channel numbers
+try:
+    GPIO.setmode(GPIO.BOARD)
+except:
+    logger.error("Error Setting board Mode")
+
 
 def getTemp(server):
     for sensor in sensors:
@@ -134,9 +154,9 @@ def start():
     settings = commonFunc.getYaml('settings')
     pins = getPinsFromHost(settings["master"])
     sensors = getTempSensors(settings["master"])
-    print(pins)
+    logger.debug(pins)
     for pin in pins:
-        print(pins[pin])
+        logger.debug(pins[pin])
         if pin < 100:
           pinSetup(pins[pin],pin)
 
@@ -193,10 +213,10 @@ def pinAction(acctedPin):
     return
 
 def expanderAction(acctedPin):
-    print("Expander Pin!")
+    logger.debug("Expander Pin!")
     status1 = checkPin(acctedPin)
     status = checkExpander()
-    print("Expander Status: {0}".format(status))
+    logger.debug("Expander Status: {0}".format(status))
     notifyHost(acctedPin,status,settings["master"])
     return
 
