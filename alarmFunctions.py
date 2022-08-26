@@ -137,7 +137,8 @@ def start():
     print(pins)
     for pin in pins:
         print(pins[pin])
-        pinSetup(pins[pin],pin)
+        if pin < 100:
+          pinSetup(pins[pin],pin)
 
 def main():
     # do the work
