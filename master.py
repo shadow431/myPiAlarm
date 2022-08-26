@@ -100,9 +100,18 @@ def pin_proc(serialNum,pin,status):
     global sysStatus
 
     setStatus(serialNum,pin,status)
-    if isArmed(allPins[serialNum][pin]['zones'])  == True and status==1:
+
+    try:
+      armed = isArmed(allPins[serialNum][pin]['zones'])
+      name = allPins[serialNum][pin]['name']
+      alarm_state = allPins[serialNum][pin]['alarm_state']
+    except KeyError:
+      armed = True
+      name = "Unknown"
+      alarm_state = status
+    if armed == True and status == alarm_state:
         email = commonFunc.email('Pin: '+str(pin)+'\nStatus: '+str(status))
-    message = "raspberrypi.pins."+str(serialNum)+"."+str(allPins[serialNum][pin]['name'])+" "+str(status)+" "+str(time.time()) +"\n"
+    message = "raspberrypi.pins."+str(serialNum)+"."+str(name)+" "+str(status)+" "+str(time.time()) +"\n"
     sendToGraphite(message)
     return
 

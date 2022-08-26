@@ -1,7 +1,7 @@
 class input_proc:
 
   def sensor_status(n, num_sensors=16):
-    bool_list = [True if digit == '1' else False for digit in bin(n)[2:]]
+    bool_list = [1 if digit == '1' else 0 for digit in bin(n)[2:]]
     bool_list.reverse()
     for i in range(len(bool_list),num_sensors):
       bool_list.append(False)
