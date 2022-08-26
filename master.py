@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 from flask import Flask, make_response
-import yaml, commonFunc, input_proc, time, random, io, os, socket
+from input_proc import input_proc
+import yaml, commonFunc, time, random, io, os, socket
 #from yaml import CLoader, CDumper
 os.environ['MPLCONFIGDIR'] = "/home/pi/"
 from flask import request
@@ -68,29 +69,33 @@ def recievePinStatus():
 
     serialNum = str(request.args.get('serNum'))
     pin = int(request.args.get('pin'))
-    status = int(request.args.get('status'))
+    status = request.args.get('status')
     sysStatus['checkIn'][serialNum] = time.time()
     if allPins[serialNum][pin]['type'] == 'expander':
-      prev_status = sysStatus["pins"][serialNumber][pin]
+      prev_status = sysStatus["pins"][serialNum][pin]
       setStatus(serialNum,pin,status)
-      pins = proc_expander(current_status,previous_status)
-      for e_pin,e_status in pins:
+      pins = proc_expander(str(status),prev_status)
+      for e_pin,e_status in pins.items():
         pin_proc(serialNum,e_pin,e_status)
-    else
+    else:
+      status = int(status)
       pin_proc(serialNum,pin,status)
     return "Ok"
 
 def proc_expander(current_status,previous_status):
-       list_current_status = current_status.split(",")
-       list_previous_status = previous_status.split(",")
-       diff_bools = {}
-       for n,s in list_current_status
-          current_bools = input_proc.sensor_status(s)
-          previous_bools = input_proc.sensor_status(list_previous_status[n])
-          diff_bools.update(input_proc.diff_values(current_bools, previous_bools, n))
+    list_current_status = current_status.split(",")
+    list_previous_status = previous_status.split(",")
+    diff_bools = {}
+    n = 0
+    for s in list_current_status:
+       current_bools = input_proc.sensor_status(int(s))
+       previous_bools = input_proc.sensor_status(int(list_previous_status[n]))
+       diff_bools.update(input_proc.diff_values(current_bools, previous_bools, n))
+       n = n+1
+    print(diff_bools)
     return diff_bools
 
-def pin_proc(serialNum,pin,status)
+def pin_proc(serialNum,pin,status):
     global allPins
     global sysStatus
 
