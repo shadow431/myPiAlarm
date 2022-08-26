@@ -8,7 +8,7 @@
 
 
 #Import needed modules
-import time, urllib.request, urllib.error, urllib.parse, yaml, commonFunc
+import time, urllib.request, urllib.error, urllib.parse, yaml, commonFunc, lib16in
 try:
     import RPi.GPIO as GPIO
 except RuntimeError:
@@ -192,13 +192,15 @@ def pinAction(acctedPin):
     return
 
 def expanderAction(acctedPin):
+    print("Expander Pin!")
     status = checkPin(acctedPin)
-    #status = checkExpander()
+    status1 = checkExpander()
+    print("Expander Status: {0}".format(status1))
     notifyHost(acctedPin,status,settings["master"])
     return
 
 def checkExpander():
-    return
+    return lib16in.readAll(0)
 
 if __name__ == '__main__':
     main()
