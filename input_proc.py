@@ -4,7 +4,7 @@ class input_proc:
     bool_list = [1 if digit == '1' else 0 for digit in bin(n)[2:]]
     bool_list.reverse()
     for i in range(len(bool_list),num_sensors):
-      bool_list.append(False)
+      bool_list.append(0)
     return bool_list
   
   def diff_values(current_status, past_status, board):
