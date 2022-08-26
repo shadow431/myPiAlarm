@@ -7,12 +7,13 @@ class input_proc:
       bool_list.append(False)
     return bool_list
   
-  def diff_values(current_status, past_status):
+  def diff_values(current_status, past_status, board):
     diff = {}
+    boardNumbers = (board+1)*100
     i = 0
     while i < 16:
       if current_status[i] != past_status[i]:
-        diff[(i+1)] = current_status[i]
+        diff[(i+boardNumbers)] = current_status[i]
       i += 1
     return diff
 
