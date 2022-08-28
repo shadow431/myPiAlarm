@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from flask import Flask, make_response
+from flask.logging import default_handler
 from input_proc import input_proc
 import yaml, commonFunc, time, random, io, os, socket, logging, sys
 #from yaml import CLoader, CDumper
@@ -9,6 +10,24 @@ from flask import request
 #from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 #from matplotlib.figure import Figure
 from datetime import datetime
+'''
+Setup Logging
+'''
+
+logFile='alarm.log'
+logging.basicConfig(filename=logFile, level=logging.INFO, format=f'%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s')
+logger = logging.getLogger('myPiAlarm.master')
+streamHandler = logging.StreamHandler(sys.stdout)
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler(logFile)
+#fh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s')
+fh.setFormatter(formatter)
+streamHandler.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(default_handler)
+logger.addHandler(streamHandler)
+
 sysStatus = {}
 app = Flask(__name__)
 app.debug=True
@@ -25,22 +44,6 @@ if type(sysStatus) is not dict:
     sysStatus['armed'] = []
     sysStatus['checkIn'] = {}
     sysStatus['triggered'] = []
-
-'''
-Setup Logging
-'''
-
-logFile='alarm.log'
-logger = logging.getLogger('myPiAlarm.master')
-streamHandler = logging.StreamHandler(sys.stdout)
-logger.setLevel(logging.INFO)
-fh = logging.FileHandler(logFile)
-#fh.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s')
-fh.setFormatter(formatter)
-streamHandler.setFormatter(formatter)
-logger.addHandler(fh)
-logger.addHandler(streamHandler)
 
 
 @app.route("/getstatus")
