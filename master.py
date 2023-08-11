@@ -96,6 +96,10 @@ def recievePinStatus():
       setStatus(serialNum,pin,status)
       pins = proc_expander(str(status),prev_status)
       for e_pin,e_status in pins.items():
+        if e_status == 1:
+            e_status = 0
+        else:
+            e_status = 1
         pin_proc(serialNum,e_pin,e_status)
     else:
       status = int(status)
